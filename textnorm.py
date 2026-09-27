@@ -60,6 +60,21 @@ def strip_reference_tags(text: str):
     return _TAG.sub(" ", text), len(found)
 
 
+# indic-nlp-library-itt (installed by the pinned IndicTransToolkit) defines
+# DevanagariNormalizer.NUKTA = "\\u093C": decomposing a precomposed nukta letter
+# (ड़ U+095C, क़ ... य़, ऩ ऱ ऴ) writes the base letter plus the six characters ़.
+# A model fine-tuned on text that went through it learns to write them.
+_NUKTA_ESCAPE = re.compile(r"\\u093[cC]")
+
+
+def fix_nukta_escape(text: str) -> str:
+    """Model output with the literal escape \\u093C replaced by the nukta (U+093C), then NFC.
+    Used for the Mundari preview's output and for both sides of its scoring."""
+    if not text:
+        return text or ""
+    return unicodedata.normalize("NFC", _NUKTA_ESCAPE.sub("़", text))
+
+
 def normalize_for_wer(text: str) -> str:
     """Text for the *normalised* WER/CER in bench/ (rules in bench/README.md).
 

@@ -247,7 +247,10 @@ print(f"unr->hi {time.time()-t0:.0f} s")
 '''),
     ("code", r'''
 # Held-out evaluation: chrF++ (word_order=2) and BLEU, sacrebleu defaults; greedy, as the app decodes.
+# Hypotheses and references get the same normalisation before scoring: fix_nukta_escape (the
+# literal nukta escape -> U+093C, then NFC; textnorm.py in the repo).
 import sacrebleu
+from textnorm import fix_nukta_escape
 def translate(model, texts, sl, tl, bs=32):
     ipi = IndicProcessor(inference=True); out = []
     model.eval().cuda()
@@ -257,21 +260,24 @@ def translate(model, texts, sl, tl, bs=32):
         with torch.no_grad():
             g = model.generate(**enc, num_beams=1, max_new_tokens=2 * enc["input_ids"].shape[1] + 10)
         dec = tok.batch_decode(g, skip_special_tokens=True, clean_up_tokenization_spaces=True)
-        out += ipi.postprocess_batch(dec, lang=tl)
+        # the literal six-character nukta escape learned from the pinned IndicNLP normaliser -> U+093C, then NFC
+        out += [fix_nukta_escape(x) for x in ipi.postprocess_batch(dec, lang=tl)]
     return out
 
 from huggingface_hub import snapshot_download
 BASE_FILES = ["*.py", "tokenizer_config.json", "special_tokens_map.json", "dict.SRC.json", "dict.TGT.json", "model.SRC", "model.TGT"]
 BASE_SNAPSHOT = snapshot_download(BASE, allow_patterns=BASE_FILES, token=os.environ["HF_TOKEN"])   # already cached
 res = {"held_out_pairs": len(held_df), "train_pairs": len(train_df), "split": "sha1(normalize_key(hindi)) % 20 == 0",
-       "decoding": "greedy", "surrogate_tag": MUN, "official_test": "no public references; not scored here"}
+       "decoding": "greedy", "surrogate_tag": MUN, "official_test": "no public references; not scored here",
+       "normalisation": "hyp and ref: fix_nukta_escape (literal \\u093C -> U+093C, then NFC)"}
 for name, ad, src, ref, sl, tl in [("hi->unr", ad_hi_mun, held_df.hindi, held_df.mundari, HI, MUN),
                                    ("unr->hi", ad_mun_hi, held_df.mundari, held_df.hindi, MUN, HI)]:
     base = AutoModelForSeq2SeqLM.from_pretrained(BASE, trust_remote_code=True, token=os.environ["HF_TOKEN"])
     m = PeftModel.from_pretrained(base, ad).merge_and_unload()
-    hyp = translate(m, list(src), sl, tl)
-    res[name] = {"chrF++": round(sacrebleu.corpus_chrf(hyp, [list(ref)], word_order=2).score, 2),
-                 "BLEU": round(sacrebleu.corpus_bleu(hyp, [list(ref)]).score, 2),
+    hyp = [fix_nukta_escape(h) for h in translate(m, list(src), sl, tl)]
+    ref = [fix_nukta_escape(r) for r in ref]
+    res[name] = {"chrF++": round(sacrebleu.corpus_chrf(hyp, [ref], word_order=2).score, 2),
+                 "BLEU": round(sacrebleu.corpus_bleu(hyp, [ref]).score, 2),
                  "examples": [{"src": s, "ref": r, "hyp": h} for s, r, h in list(zip(src, ref, hyp))[:10]]}
     m.save_pretrained(f"{PERSIST}/merged_{name.replace('->', '_')}")
     # Not tok.save_pretrained: it writes the base's vocab paths into tokenizer_config.json

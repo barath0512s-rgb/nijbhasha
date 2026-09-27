@@ -426,9 +426,21 @@
   status: "NOT BUILT"
   evidence: STATUS.md
 - id: mundari_translation
-  text: "Hindi–Mundari translation"
+  text: "Hindi–Mundari translation in the app"
   status: "NOT BUILT"
   evidence: notebooks/mundari_lora.ipynb
+- id: mundari_preview_v5
+  text: "Mundari preview translation, before the nukta fix (Kaggle v5), held-out 5% of the MMLoSo 2025 training file (n=1,021 pairs), greedy decoding, Mundari preview, not reviewed by a native speaker: hi→unr chrF++ 29.13, BLEU 6.06; unr→hi chrF++ 34.64, BLEU 11.86; not comparable with the Santali IN22-Conv or FLORES numbers (different test sets)"
+  status: "TRUE"
+  evidence: STATUS.md
+- id: mundari_preview_final
+  text: "Mundari preview translation, final scores with the nukta fix (held-out 5% of the MMLoSo 2025 training file (n=1,021 pairs), greedy decoding, Mundari preview, not reviewed by a native speaker)"
+  status: "NOT MEASURED"
+  evidence: notebooks/mundari_lora.ipynb
+- id: hub_precomposed_nukta_input
+  text: "The laptop hub passes Hindi precomposed nukta letters (e.g. ड़ U+095C) to the translation model intact"
+  status: "FALSE"
+  evidence: tests/test_nukta_escape.py
 - id: a6_voice_compare
   text: "Santali voices, ASR round-trip CER on 210 pack lines (600M): Piper (transliterated) mean 0.445, median 0.275; Indic Parler-TTS mean 0.776, median 0.091 (lower on 139 lines, higher on 49); by the rule fixed in advance the pack keeps Piper"
   status: "TRUE"

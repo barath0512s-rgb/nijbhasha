@@ -232,3 +232,7 @@ Anchors (`#name`) are what `docs/claims.yaml` points to.
 
 ### <a name="tesseract"></a>Tesseract OCR (C2, laptop)
 - https://tesseract-ocr.github.io/tessdoc/Installation.html, accessed 2026-09-26: Windows installers "are available from Tesseract at UB Mannheim"; Tesseract is distributed under the "Apache 2.0 license"; language data (`hin.traineddata`) goes in the `tessdata` folder. Installed by the team on 27 Sep 2026: tesseract v5.5.3.20260724 (UB Mannheim, 64-bit), `--list-langs` shows eng, hin, osd; at `C:\Program Files\Tesseract-OCR\` (not on PATH; `ocr.py` looks there).
+
+### <a name="indicnlp-nukta"></a>indic-nlp-library-itt: the nukta written as the six characters \u093C
+- Installed by the pinned IndicTransToolkit (commit 3efb8418, dependency `indic-nlp-library-itt`, version 0.1.1 in the laptop venv). `indicnlp/normalize/indic_normalize.py`, class `DevanagariNormalizer`: `NUKTA = "\\u093C"` (a double-escaped string), used when decomposing the precomposed nukta letters U+0929, U+0931, U+0934, U+0958–U+095F. Read in the installed file on 2026-09-27.
+- Effect, reproduced on the laptop (`tests/test_nukta_escape.py`): `IndicProcessor.preprocess_batch` turns "पड़हा" typed with U+095C into "पड\u093Cहा"; `postprocess_batch` does not undo it. The Mundari LoRA (trained on text that went through it) learned to write the escape; the app's own Hindi→Santali input is affected the same way (STATUS, "Nukta escape").
