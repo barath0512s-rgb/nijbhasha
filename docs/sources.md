@@ -207,6 +207,7 @@ Anchors (`#name`) are what `docs/claims.yaml` points to.
 
 ### <a name="finetune-hf-vits"></a>ylacombe/finetune-hf-vits (C4 training code)
 - https://github.com/ylacombe/finetune-hf-vits @ `6f3f51f4d667f5c3eef89484d151ffd39d2c2b89`, MIT License (LICENSE file, accessed 2026-09-26). Fine-tuning MMS needs the discriminator converted from the original MMS checkpoint (`convert_original_discriminator_checkpoint.py --language_code <iso>`).
+- README at the same commit, accessed 2026-09-27: with the right data and its recipe, a fine-tuned VITS/MMS checkpoint in about 20 minutes "with as little as 80 to 150 samples". The notebook's minimum is 150 training clips (the top of that range).
 
 ### <a name="indicvoices-r-santali"></a>IndicVoices-R, Santali config (C4 data)
 - Hub API card data (accessed 2026-09-26): config `Santali`, train 32,613 examples, test 660; download size 38.8 GB; fields include `speaker_id`, `gender`, `snr`, `duration`, `text`, `audio` (48 kHz). CC BY 4.0, gated (access already granted 2026-09-25).

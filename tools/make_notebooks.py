@@ -461,12 +461,16 @@ oov_share = sum(oov.values()) / max(chars, 1)
 print("out-of-vocabulary characters (dropped by the tokenizer):", oov)
 random.seed(20260926); random.shuffle(lines)
 held, train = lines[:20], lines[20:]
-print(f"out-of-vocabulary share: {oov_share:.2%} of all characters (limit 1%); training clips: {len(train)} (minimum 300)")
+# Minimum 150 training clips: the finetune-hf-vits README (pinned 6f3f51f) says a fine-tuned
+# VITS/MMS checkpoint is possible "with as little as 80 to 150 samples"; 150 is the top of that
+# range. (It was 300; the best Santali speaker has 261 training clips, 0.6 h: a small-data voice.)
+MIN_TRAIN_CLIPS = 150
+print(f"out-of-vocabulary share: {oov_share:.2%} of all characters (limit 1%); training clips: {len(train)} (minimum {MIN_TRAIN_CLIPS})")
 if oov_share > 0.01:
     raise RuntimeError(f"STOP: {oov_share:.2%} of the characters are not in the base voice's vocabulary "
                        "(more than 1%): the voice would drop those sounds. Fix the Ol Chiki -> Odia conversion first.")
-if len(train) < 300:
-    raise RuntimeError(f"STOP: only {len(train)} training clips (fewer than 300) for this speaker: "
+if len(train) < MIN_TRAIN_CLIPS:
+    raise RuntimeError(f"STOP: only {len(train)} training clips (fewer than {MIN_TRAIN_CLIPS}) for this speaker: "
                        "too few to fine-tune a voice.")
 import csv
 with open(f"{DATA}/metadata.csv", "w", newline="", encoding="utf-8") as f:
