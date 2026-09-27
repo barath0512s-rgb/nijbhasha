@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-REPO = "https://github.com/barath0512s-rgb/sih-hackathon"   # GitHub redirects after a rename
+REPO = "https://github.com/barath0512s-rgb/nijbhasha"
 
 COMMON_SETUP = r'''
 import os, sys, subprocess, json, glob, time, hashlib, random
@@ -88,6 +88,7 @@ the same base model the app uses, trained on the **MMLoSo 2025** Hindi–Mundari
 1. kaggle.com → Settings → Phone verification done (needed for GPU and Internet).
 2. Create → New Notebook → File → **Import Notebook** → upload this `.ipynb`.
 3. Right panel → Session options → **Accelerator: GPU T4 x2** (or P100); **Internet: On**.
+   The notebook uses one GPU even on T4 x2.
 4. Add-ons → **Secrets** → Add secret: label **`HF_TOKEN`**, value = a Hugging Face **read** token → tick it
    for this notebook. (The code reads it with `UserSecretsClient`; it is never printed or saved.)
 5. kaggle.com/competitions/mm-lo-so-2025 → Data → **accept the rules** (your account); then in the
@@ -106,14 +107,21 @@ evaluation 5 min · merge + ONNX export + int8 ≈ 10 min per direction. **≈ 2
 These are estimates, not measurements.
 '''),
     ("code", r'''
-REPO_URL = "%s"
-''' % REPO + COMMON_SETUP),
-    ("code", r'''
+# One GPU, set before anything touches CUDA: on "GPU T4 x2" the Trainer wraps the model in
+# DataParallel and gathers the full logits onto GPU 0, which ran out of memory (Kaggle run v3).
+import os; os.environ["CUDA_VISIBLE_DEVICES"]="0";
+os.environ["PYTORCH_CUDA_ALLOC_CONF"]=os.environ["PYTORCH_ALLOC_CONF"]="expandable_segments:True"
+# FIRST code cell: install before anything imports torch or numpy. (Installing numpy<2 after
+# torch had loaded Kaggle's numpy 2 mixed two numpy versions in one kernel: "numpy.dtype size
+# changed". Kaggle's Python 3.12 image ships numpy 2, which these pins support: no numpy pin.)
 # Pinned packages (the app's versions where it has them).
 !pip install -q transformers==4.46.1 peft==0.13.2 accelerate==1.0.1 sacrebleu==2.5.1 sentencepiece==0.2.0 \
-    onnx==1.17.0 onnxruntime==1.19.2 "numpy<2" \
+    onnx==1.17.0 onnxruntime==1.19.2 \
     "IndicTransToolkit @ git+https://github.com/VarunGumma/IndicTransToolkit.git@3efb8418d0721b4ce267c2b3586899d313191357"
 '''),
+    ("code", r'''
+REPO_URL = "%s"
+''' % REPO + COMMON_SETUP),
     ("code", HF_LOGIN),
     ("code", r'''
 # Data: the MMLoSo Hindi-Mundari training file and the test sources.
@@ -123,7 +131,30 @@ print("\n".join(cands))
 train_csv = [c for c in cands if "mundari" in os.path.basename(c).lower() and "test" not in c.lower()]
 test_csv = [c for c in cands if "test" in os.path.basename(c).lower()]
 assert train_csv, "Hindi-Mundari training CSV not found: add the competition data (Kaggle) or upload it (Colab)"
-df = pd.read_csv(train_csv[0])
+def read_norm(path):
+    """The competition files use capitalised headers (Hindi, Mundari) and a saved index column
+    ('Unnamed: 0'): drop index columns, lower-case the names."""
+    d = pd.read_csv(path)
+    d = d.loc[:, [c for c in d.columns if not str(c).lower().startswith("unnamed")]]
+    d.columns = [str(c).strip().lower().replace(" ", "_") for c in d.columns]
+    return d
+
+TEST_COLS = {"source_sentence", "source_lang", "target_lang"}
+def test_ok(t):
+    if TEST_COLS <= set(t.columns):
+        return True
+    print("WARNING: the test file's columns are", t.columns.tolist(), "- expected", sorted(TEST_COLS),
+          "- test hashes, samples and the submission file are skipped; training is not affected")
+    return False
+
+def row_ids(t):
+    for c in ("row_id", "id"):
+        if c in t.columns:
+            return t[c].astype(str)
+    return t.index.astype(str)
+
+df = read_norm(train_csv[0])
+print("training file columns:", df.columns.tolist())
 assert {"hindi", "mundari"} <= set(df.columns), df.columns
 df = df.dropna(subset=["hindi", "mundari"]).drop_duplicates(subset=["hindi", "mundari"])
 print(len(df), "pairs after de-duplication")
@@ -142,25 +173,28 @@ print("train", len(train_df), "held-out", len(held_df))
 
 test_src = []
 if test_csv:
-    t = pd.read_csv(test_csv[0]); print(t.columns.tolist(), len(t))
-    test_src = t[t.target_lang.str.lower().str.contains("mundari|hindi")]["source_sentence"].tolist() if "source_sentence" in t else []
+    t = read_norm(test_csv[0]); print("test file columns:", t.columns.tolist(), len(t))
+    if test_ok(t):
+        test_src = t[t.target_lang.astype(str).str.lower().str.contains("mundari|hindi")]["source_sentence"].astype(str).tolist()
 leak = {"note": "sha1 of normalize_key(text): MMLoSo held-out (hi, unr) and official test sources; never train on these",
         "hashes": sorted({hashlib.sha1(nkey(s).encode()).hexdigest()
                           for s in list(held_df.hindi) + list(held_df.mundari) + test_src})}
-json.dump(leak, open(f"{PERSIST}/leakage_hashes.json", "w"))
+json.dump(leak, open(f"{PERSIST}/leakage_hashes.json", "w", encoding="utf-8"))
 print(len(leak["hashes"]), "hashes -> leakage_hashes.json")
 
 # A7 voice samples: 10 Mundari sentences from the official TEST file only (Mundari -> Hindi sources),
 # seeded; they are already in leakage_hashes.json. MMLoSo 2025, CC BY-SA 4.0.
 samples = []
 if test_csv:
-    t = pd.read_csv(test_csv[0])
-    mun = t[(t.source_lang.str.lower() == "mundari")]
-    for _, r in mun.sample(n=min(10, len(mun)), random_state=20260927).iterrows():
-        samples.append({"row_id": str(r.row_id), "mundari": r.source_sentence})
+    t = read_norm(test_csv[0])
+    if test_ok(t):
+        t = t.assign(_rid=row_ids(t))
+        mun = t[t.source_lang.astype(str).str.lower() == "mundari"]
+        for _, r in mun.sample(n=min(10, len(mun)), random_state=20260927).iterrows():
+            samples.append({"row_id": r["_rid"], "mundari": str(r.source_sentence)})
 json.dump({"source": "MMLoSo 2025 shared task, official test file (kaggle.com/competitions/mm-lo-so-2025)",
            "licence": "CC BY-SA 4.0", "split": "test", "sentences": samples},
-          open(f"{PERSIST}/mmloso_test_mundari_samples.json", "w"), ensure_ascii=False, indent=1)
+          open(f"{PERSIST}/mmloso_test_mundari_samples.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 print(len(samples), "test-split Mundari sentences -> mmloso_test_mundari_samples.json")
 '''),
     ("code", r'''
@@ -182,7 +216,8 @@ def encode(src, tgt, sl, tl):
             for a, m, l in zip(enc["input_ids"], enc["attention_mask"], lab["input_ids"])]
 '''),
     ("code", r'''
-EPOCHS, LR, BS = 3, 3e-4, 16
+# BS 8 x 4 accumulation steps = effective batch 32 on one T4 (the runtime estimate assumes one T4).
+EPOCHS, LR, BS = 3, 3e-4, 8
 def train_direction(name, src, tgt, sl, tl):
     out = f"{PERSIST}/lora_{name}"
     if os.path.exists(f"{out}/final/adapter_config.json"):
@@ -192,7 +227,7 @@ def train_direction(name, src, tgt, sl, tl):
                      target_modules=["q_proj", "k_proj", "v_proj", "out_proj", "fc1", "fc2"])
     model = get_peft_model(base, cfg); model.print_trainable_parameters()
     data = encode(src, tgt, sl, tl)
-    args = Seq2SeqTrainingArguments(out, per_device_train_batch_size=BS, gradient_accumulation_steps=2,
+    args = Seq2SeqTrainingArguments(out, per_device_train_batch_size=BS, gradient_accumulation_steps=4,
         learning_rate=LR, num_train_epochs=EPOCHS, warmup_ratio=0.03, lr_scheduler_type="linear",
         fp16=True, logging_steps=50, save_steps=200, save_total_limit=2, report_to=[], seed=20260926)
     tr = Seq2SeqTrainer(model=model, args=args, train_dataset=data,
@@ -238,7 +273,7 @@ for name, ad, src, ref, sl, tl in [("hi->unr", ad_hi_mun, held_df.hindi, held_df
     m.save_pretrained(f"{PERSIST}/merged_{name.replace('->', '_')}")
     tok.save_pretrained(f"{PERSIST}/merged_{name.replace('->', '_')}")
     print(name, res[name]["chrF++"], res[name]["BLEU"])
-json.dump(res, open(f"{PERSIST}/mundari_eval.json", "w"), ensure_ascii=False, indent=1)
+json.dump(res, open(f"{PERSIST}/mundari_eval.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 '''),
     ("code", r'''
 # Export each merged model with the repo's own exporter (encoder, decoder_init, decoder_step + int8),
@@ -257,14 +292,17 @@ print(os.path.getsize(f"{PERSIST}/mundari_onnx.zip") / 1e6, "MB")
 # Optional: a Kaggle late-submission file for the official test (the leaderboard score is S = 0.6 BLEU + 0.4 chrF,
 # weighted by direction). Only rows with a Hindi<->Mundari direction are filled; other pairs are left out.
 if test_csv:
-    t = pd.read_csv(test_csv[0])
+    t = read_norm(test_csv[0])
     rows = []
+    if not test_ok(t):
+        t = t.iloc[0:0].assign(source_lang="", target_lang="", source_sentence="")
+    t = t.assign(_rid=row_ids(t))
     for d, ad, sl, tl in [("hindi->mundari", ad_hi_mun, HI, MUN), ("mundari->hindi", ad_mun_hi, MUN, HI)]:
         s_l, t_l = d.split("->")
-        sub = t[(t.source_lang.str.lower() == s_l) & (t.target_lang.str.lower() == t_l)]
+        sub = t[(t.source_lang.astype(str).str.lower() == s_l) & (t.target_lang.astype(str).str.lower() == t_l)]
         if not len(sub): continue
         m = AutoModelForSeq2SeqLM.from_pretrained(f"{PERSIST}/merged_{'hi_unr' if s_l == 'hindi' else 'unr_hi'}", trust_remote_code=True)
-        rows += list(zip(sub.row_id, translate(m, list(sub.source_sentence), sl, tl)))
+        rows += list(zip(sub["_rid"], translate(m, list(sub.source_sentence.astype(str)), sl, tl)))
     pd.DataFrame(rows, columns=["row_id", "target_sentence"]).to_csv(f"{PERSIST}/kaggle_mundari_rows.csv", index=False)
     print(len(rows), "rows -> kaggle_mundari_rows.csv (check the competition's sample_submission for the exact columns)")
 '''),
@@ -307,11 +345,16 @@ chosen speaker's shards ≈ 20–60 min (depends on how many shards the speaker 
 export 5 min. **≈ 3–4.5 h.** Estimates, not measurements. A Kaggle session is limited to 12 h.
 '''),
     ("code", r'''
+# FIRST code cell: install before anything imports torch or numpy. (Installing numpy<2 after
+# torch had loaded Kaggle's numpy 2 mixed two numpy versions in one kernel: "numpy.dtype size
+# changed". Kaggle's Python 3.12 image ships numpy 2, which these pins support: no numpy pin.)
+!pip install -q transformers==4.46.1 datasets==3.1.0 accelerate==1.0.1 huggingface_hub==0.26.2 pyarrow==17.0.0 \
+    soundfile==0.12.1 librosa==0.10.2.post1 Cython==3.0.11 onnx==1.17.0 onnxruntime==1.19.2 matplotlib tensorboard
+'''),
+    ("code", r'''
 REPO_URL = "%s"
 ''' % REPO + COMMON_SETUP),
     ("code", r'''
-!pip install -q transformers==4.46.1 datasets==3.1.0 accelerate==1.0.1 huggingface_hub==0.26.2 pyarrow==17.0.0 \
-    soundfile==0.12.1 librosa==0.10.2.post1 Cython==3.0.11 onnx==1.17.0 onnxruntime==1.19.2 "numpy<2" matplotlib tensorboard
 if not os.path.exists("finetune-hf-vits"):
     subprocess.run("git clone -q https://github.com/ylacombe/finetune-hf-vits && cd finetune-hf-vits && "
                    "git checkout -q 6f3f51f4d667f5c3eef89484d151ffd39d2c2b89 && "
@@ -333,8 +376,8 @@ for i, sh in enumerate(shards):
     with fs.open(sh, "rb") as f:
         t = pq.read_table(f, columns=["speaker_id", "duration", "snr", "gender", "text"]).to_pandas()
     meta[sh] = t.assign(text_len=t.text.str.len()).drop(columns=["text"]).to_dict("list")
-    if i % 10 == 0: json.dump(meta, open(meta_path, "w")); print(i, end=" ", flush=True)
-json.dump(meta, open(meta_path, "w"))
+    if i % 10 == 0: json.dump(meta, open(meta_path, "w", encoding="utf-8")); print(i, end=" ", flush=True)
+json.dump(meta, open(meta_path, "w", encoding="utf-8"))
 import pandas as pd
 rows = pd.concat([pd.DataFrame(v).assign(shard=k) for k, v in meta.items()])
 ok = rows[(rows.snr >= 25) & (rows.duration.between(1, 20))]
@@ -346,7 +389,7 @@ sel = {"dataset": "ai4bharat/indicvoices_r", "config": "Santali", "split": "trai
        "speaker_id": str(SPEAKER), "hours": round(float(by.loc[SPEAKER, "hours"]), 2),
        "clips": int(by.loc[SPEAKER, "clips"]), "gender": str(by.loc[SPEAKER, "gender"]),
        "filters": "snr >= 25 dB, 1-20 s", "top10": by.head(10).reset_index().to_dict("records")}
-json.dump(sel, open(f"{PERSIST}/speaker_selection.json", "w"), indent=1, default=str)
+json.dump(sel, open(f"{PERSIST}/speaker_selection.json", "w", encoding="utf-8"), indent=1, default=str)
 print(sel["speaker_id"], sel["hours"], "h")
 '''),
     ("code", r'''
@@ -372,7 +415,7 @@ for sh in need:
             sf.write(f"{DATA}/wav/{name}", a, 16000, subtype="PCM_16")
             out.write(json.dumps({"file_name": f"wav/{name}", "olchiki": r.text,
                                   "text": olchiki_to_odia(r.text)}, ensure_ascii=False) + "\n")
-    done.add(sh); json.dump(sorted(done), open(done_path, "w")); print("shard done", sh.rsplit("/", 1)[1])
+    done.add(sh); json.dump(sorted(done), open(done_path, "w", encoding="utf-8")); print("shard done", sh.rsplit("/", 1)[1])
 lines = [json.loads(l) for l in open(lines_path, encoding="utf-8")]
 lines = list({l["file_name"]: l for l in lines}.values())
 print(len(lines), "clips")
@@ -394,7 +437,7 @@ import csv
 with open(f"{DATA}/metadata.csv", "w", newline="", encoding="utf-8") as f:
     w = csv.writer(f); w.writerow(["file_name", "text"])
     for l in train: w.writerow([l["file_name"], l["text"]])
-json.dump(held, open(f"{PERSIST}/held_out_clips.json", "w"), ensure_ascii=False, indent=1)
+json.dump(held, open(f"{PERSIST}/held_out_clips.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 print(len(train), "train clips,", len(held), "held out")
 '''),
     ("code", r'''
@@ -422,7 +465,7 @@ cfg = {
   "do_step_schedule_per_epoch": True, "save_steps": 500, "save_total_limit": 2,
   "weight_disc": 3, "weight_fmaps": 1, "weight_gen": 1, "weight_kl": 1.5, "weight_duration": 1, "weight_mel": 35,
   "fp16": True, "seed": 456}
-json.dump(cfg, open("finetune-hf-vits/santali.json", "w"), ensure_ascii=False, indent=1)
+json.dump(cfg, open("finetune-hf-vits/santali.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 t0 = time.time()
 subprocess.run("accelerate launch run_vits_finetuning.py santali.json", shell=True, cwd="finetune-hf-vits", check=True)
 print(f"training {time.time() - t0:.0f} s")
@@ -439,7 +482,7 @@ for i, l in enumerate(held):
     with torch.no_grad():
         w = m(**tk(l["text"], return_tensors="pt").to("cuda")).waveform[0].cpu().numpy()
     sf.write(f"{EXP}/samples/{i:02d}.wav", w, m.config.sampling_rate)
-json.dump(held, open(f"{EXP}/samples/texts.json", "w"), ensure_ascii=False, indent=1)
+json.dump(held, open(f"{EXP}/samples/texts.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 subprocess.run(f"cp {PERSIST}/speaker_selection.json {EXP}/ && cd {PERSIST} && zip -qr santali_voice_onnx.zip santali_voice_onnx", shell=True, check=True)
 print(os.path.getsize(f"{PERSIST}/santali_voice_onnx.zip") / 1e6, "MB")
 '''),
