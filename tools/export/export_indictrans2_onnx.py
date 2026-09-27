@@ -18,6 +18,7 @@ Android. Only the export is here; the laptop build does not depend on it.
 """
 
 import argparse
+import inspect
 import os
 import sys
 import time
@@ -32,6 +33,10 @@ import config  # noqa: E402
 
 OUT = config.MODELS_DIR / "indictrans2-onnx"
 OPSET = 17
+# Newer torch defaults torch.onnx.export to the dynamo exporter, which needs onnxscript (not on
+# Kaggle). Ask for the TorchScript exporter explicitly, but only where torch has the argument,
+# so older torch (the laptop's) is called exactly as before.
+LEGACY = {"dynamo": False} if "dynamo" in inspect.signature(torch.onnx.export).parameters else {}
 
 
 def load():
@@ -99,7 +104,7 @@ def export(tok, m):
         torch.onnx.export(Encoder(m), (ids, mask), str(OUT / "encoder.onnx"), opset_version=OPSET,
                           input_names=["input_ids", "attention_mask"], output_names=["encoder_hidden_states"],
                           dynamic_axes={"input_ids": {1: "src"}, "attention_mask": {1: "src"},
-                                        "encoder_hidden_states": {1: "src"}})
+                                        "encoder_hidden_states": {1: "src"}}, **LEGACY)
         print(f"encoder.onnx ({time.time() - t:.0f} s)")
 
         t = time.time()
@@ -109,7 +114,7 @@ def export(tok, m):
             dyn[f"present.{i}.cross_k"] = {2: "src"}; dyn[f"present.{i}.cross_v"] = {2: "src"}
         torch.onnx.export(DecoderInit(m), (start, hid, mask), str(OUT / "decoder_init.onnx"), opset_version=OPSET,
                           input_names=["decoder_input_ids", "encoder_hidden_states", "encoder_attention_mask"],
-                          output_names=["logits"] + pres, dynamic_axes=dyn)
+                          output_names=["logits"] + pres, dynamic_axes=dyn, **LEGACY)
         print(f"decoder_init.onnx ({time.time() - t:.0f} s)")
 
         t = time.time()
@@ -124,7 +129,7 @@ def export(tok, m):
         torch.onnx.export(DecoderStep(m), (nxt, hid, mask, *past), str(OUT / "decoder_step.onnx"),
                           opset_version=OPSET,
                           input_names=["decoder_input_ids", "encoder_hidden_states", "encoder_attention_mask"] + pin,
-                          output_names=["logits"] + pout, dynamic_axes=dyn)
+                          output_names=["logits"] + pout, dynamic_axes=dyn, **LEGACY)
         print(f"decoder_step.onnx ({time.time() - t:.0f} s)")
 
 
