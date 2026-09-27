@@ -136,6 +136,13 @@ ORF_PASSAGES_FILE = BASE_DIR / "content" / "orf_passages.json"
 PHOTO_IMPORT = False
 TESSERACT_CMD = None               # None: PATH, then C:\Program Files\Tesseract-OCR\tesseract.exe
 
+# ── Mundari translation preview (C3), laptop hub only ────────────────────────
+# IndicTrans2 + the Hindi–Mundari LoRA adapters (notebooks/mundari_lora.ipynb, Kaggle v6),
+# int8 ONNX, one folder per direction (tools/install_mundari_nmt.py). Labelled Preview,
+# every reply needs native review (mundari_nmt.py). Scores: STATUS.md, C3 row.
+MUNDARI_NMT_PREVIEW = True
+MUNDARI_NMT_DIR = MODELS_DIR / "indictrans2-mundari-onnx"
+
 # ── Worksheets (A2) ───────────────────────────────────────────────────────────
 # v2: student exercises with pictures (count and write, match, fill in the blank,
 # circle the answer, trace the numeral) and a teacher answer key; cut-out

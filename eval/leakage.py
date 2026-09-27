@@ -37,7 +37,31 @@ def load_hashes(path=HASHES):
     if not Path(path).exists():
         return set(), []
     data = json.loads(Path(path).read_text(encoding="utf-8"))
-    return {h for s in data.values() for h in s["sha256"]}, sorted(data)
+    return {h for s in data.values() for h in s.get("sha256", [])}, sorted(data)
+
+
+def nkey(text):
+    """The Mundari notebook's key (notebooks/mundari_lora.ipynb): NFC, strip, lower, single spaces."""
+    return re.sub(r"\s+", " ", unicodedata.normalize("NFC", str(text)).strip().lower())
+
+
+def _sha1_sets(path=HASHES):
+    """Sets hashed by the Mundari notebook: SHA-1 of nkey(text) (it runs on Kaggle, outside this repo)."""
+    if not Path(path).exists():
+        return set()
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    return {h for s in data.values() for h in s.get("sha1_nkey", [])}
+
+
+def record_mmloso(leakage_json, path=HASHES):
+    """Add the notebook's leakage_hashes.json (MMLoSo held-out pairs and official test sources)
+    as the "mmloso-heldout+test" entry. Returns the number of hashes."""
+    src = json.loads(Path(leakage_json).read_text(encoding="utf-8"))
+    data = json.loads(Path(path).read_text(encoding="utf-8")) if Path(path).exists() else {}
+    data["mmloso-heldout+test"] = {"revision": "notebooks/mundari_lora.ipynb, Kaggle v6", "note": src["note"],
+                                   "sha1_nkey": sorted(set(src["hashes"]))}
+    Path(path).write_text(json.dumps(data, indent=0) + "\n", encoding="utf-8")
+    return len(data["mmloso-heldout+test"]["sha1_nkey"])
 
 
 def assert_no_test_leakage(pairs, path=HASHES, require=True):
@@ -45,7 +69,8 @@ def assert_no_test_leakage(pairs, path=HASHES, require=True):
     require=True also refuses to run without the hash file, so a fresh clone
     cannot train before the test sets have been hashed."""
     hashes, sets = load_hashes(path)
-    if not hashes:
+    sha1 = _sha1_sets(path)
+    if not hashes and not sha1:
         if require:
             raise LeakedTestSentence(f"{Path(path).name} is missing: run eval/eval_benchmarks.py first, "
                               "so the test sets can be excluded.")
@@ -53,7 +78,8 @@ def assert_no_test_leakage(pairs, path=HASHES, require=True):
     hits = []
     for i, pair in enumerate(pairs):
         for text in (pair if isinstance(pair, (tuple, list)) else (pair,)):
-            if hashlib.sha256(normalise_for_hash(text).encode("utf-8")).hexdigest() in hashes:
+            if (hashlib.sha256(normalise_for_hash(text).encode("utf-8")).hexdigest() in hashes
+                    or hashlib.sha1(nkey(text).encode("utf-8")).hexdigest() in sha1):
                 hits.append((i, text[:60]))
     if hits:
         raise LeakedTestSentence(f"{len(hits)} training items are test sentences from {sets}, "

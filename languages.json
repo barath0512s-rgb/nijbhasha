@@ -72,9 +72,9 @@
      "source": null
     },
     "nmt": {
-     "engine": "IndicTrans2 + Hindi–Mundari LoRA (notebooks/mundari_lora.ipynb, not run yet)",
+     "engine": "IndicTrans2 + Hindi–Mundari LoRA (notebooks/mundari_lora.ipynb, Kaggle v6), int8 ONNX, laptop hub only (MUNDARI_NMT_PREVIEW)",
      "licence": "MIT (model); data CC BY-SA 4.0",
-     "maturity": "not available",
+     "maturity": "preview",
      "source": "docs/sources.md#mmloso"
     },
     "tts": {

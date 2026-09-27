@@ -74,3 +74,19 @@ def test_any_asr_fine_tuning_script_uses_the_guard():
         src = f.read_text(encoding="utf-8")
         if "fine-tun" in src.lower() or f.name.startswith(("train", "finetune")):
             assert "assert_no_test_leakage(" in src or "assert_no_asr_test_leakage(" in src, f.name
+
+
+def test_mmloso_hashes_from_the_notebook_are_enforced(tmp_path):
+    """C3: the notebook's leakage_hashes.json (SHA-1 of its nkey) joins the guard as its own set."""
+    import hashlib
+    import json
+    from eval.leakage import nkey, record_mmloso
+    held = "नेअःगे पड़हा दिरि दो"
+    src = tmp_path / "leakage_hashes.json"
+    src.write_text(json.dumps({"note": "test", "hashes": [hashlib.sha1(nkey(held).encode()).hexdigest()]}),
+                   encoding="utf-8")
+    hashes = tmp_path / "hashes.json"
+    assert record_mmloso(src, hashes) == 1
+    with pytest.raises(LeakedTestSentence):
+        assert_no_test_leakage([("x", "  नेअःगे  पड़हा दिरि दो ")], hashes)      # spacing differs: same key
+    assert assert_no_test_leakage([("x", "नवा नवागे")], hashes) == 1

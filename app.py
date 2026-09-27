@@ -831,7 +831,12 @@ def orf_score():
 def languages_registry():
     """A7: the language registry (languages.json): per language and stage, engine, licence, maturity."""
     import languages
-    return jsonify({"languages": languages.load()})
+    import mundari_nmt
+    langs = languages.load()
+    for lang in langs:              # C3: the Mundari translation preview only when switched on and installed
+        if lang["code"] == "unr" and not (config.MUNDARI_NMT_PREVIEW and mundari_nmt.available("hi-to-unr")):
+            lang["stages"]["nmt"] = {**lang["stages"]["nmt"], "maturity": "not available"}
+    return jsonify({"languages": langs})
 
 
 @app.route("/preview/speak", methods=["POST"])
@@ -856,6 +861,26 @@ def preview_speak():
         _prune_audio()
     return jsonify({"audio_url": f"/audio/{aid}", "maturity": "preview", "language": mms_tts.NAMES[lang],
                     "seconds": round(len(w) / sr, 2)})
+
+
+@app.route("/preview/translate", methods=["POST"])
+def preview_translate():
+    """C3: Mundari translation, Preview only: {text, direction: "hi-to-unr"|"unr-to-hi"} (Devanagari)."""
+    import mundari_nmt
+    if not config.MUNDARI_NMT_PREVIEW:
+        return jsonify({"error": "The Mundari translation preview is switched off (MUNDARI_NMT_PREVIEW)",
+                        "code": "disabled"}), 404
+    d = request.json or {}
+    direction, text = d.get("direction", "hi-to-unr"), (d.get("text") or "").strip()
+    if direction not in mundari_nmt.DIRECTIONS or not text:
+        return jsonify({"error": "text and direction (hi-to-unr or unr-to-hi) are required"}), 400
+    if not mundari_nmt.available(direction):
+        return jsonify({"error": "The Mundari translation model is not installed (tools/install_mundari_nmt.py)",
+                        "code": "engine_missing"}), 503
+    t0 = time.time()
+    r = mundari_nmt.translate(text, direction)
+    r["latency_s"] = round(time.time() - t0, 3)
+    return jsonify(r)
 
 
 _preview_voices = {}

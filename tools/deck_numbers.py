@@ -351,6 +351,22 @@ def uplift():
         out("peak PSS, app + WebView", f"{p['app'] / 1024:.0f} + {p['renderer'] / 1024:.0f} MB", src)
         a = v["answers"]
         out("spoken answers graded as expected", f"{sum((x['signal'] == 'green') == (x['expect'] == 'green') for x in a)} of {len(a)}", src)
+    mv = sorted((ROOT / "eval" / "results").glob("mundari_eval_v*.json"))
+    if mv:
+        import mundari_nmt
+        print(f"\nMundari translation, preview (C3): {mundari_nmt.LABEL}; "
+              "not comparable with the Santali IN22-Conv or FLORES numbers (different test sets)")
+        for f in mv:
+            r = json.loads(f.read_text(encoding="utf-8"))
+            run = f.stem.rsplit("_", 1)[1]
+            fixed = "normalisation" in r            # written only by the notebook with the nukta clean-up
+            tag = f"{run} run, {'after' if fixed else 'before'} nukta fix"
+            for d in ("hi->unr", "unr->hi"):
+                out(f"{d} chrF++ / BLEU ({tag})", f"{r[d]['chrF++']:.2f} / {r[d]['BLEU']:.2f}",
+                    str(f.relative_to(ROOT)).replace("\\", "/"))
+        if not any("normalisation" in json.loads(f.read_text(encoding="utf-8")) for f in mv):
+            out("final scores, after the nukta fix", NM, "no run of the fixed notebook yet")
+        out("the hub's int8 ONNX engine, scored", NM, "the scores above are the notebook's PyTorch model")
     rt = ROOT / "eval" / "results" / "roundtrip_flag.json"
     if rt.exists():
         r = json.loads(rt.read_text(encoding="utf-8"))
