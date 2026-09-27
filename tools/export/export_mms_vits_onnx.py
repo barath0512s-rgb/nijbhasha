@@ -18,6 +18,7 @@ same noise seed is not possible across runtimes, so the check compares lengths
 """
 
 import argparse
+import inspect
 import json
 import shutil
 import sys
@@ -27,6 +28,10 @@ import torch
 
 ROOT = Path(__file__).resolve().parents[2]
 OPSET = 17
+# Newer torch defaults torch.onnx.export to the dynamo exporter, which needs onnxscript (not on
+# Kaggle). Ask for the TorchScript exporter explicitly, but only where torch has the argument,
+# so older torch (the laptop's) is called exactly as before.
+LEGACY = {"dynamo": False} if "dynamo" in inspect.signature(torch.onnx.export).parameters else {}
 
 
 class Wrap(torch.nn.Module):
@@ -59,7 +64,7 @@ def main():
     ids = tokenize(tok, sample)
     torch.onnx.export(Wrap(m), (ids,), str(out / "model.onnx"), opset_version=OPSET,
                       input_names=["input_ids"], output_names=["waveform"],
-                      dynamic_axes={"input_ids": {1: "T"}, "waveform": {1: "N"}})
+                      dynamic_axes={"input_ids": {1: "T"}, "waveform": {1: "N"}}, **LEGACY)
     with open(out / "tokens.txt", "w", encoding="utf-8", newline="\n") as f:
         for ch, i in sorted(vocab.items(), key=lambda kv: kv[1]):
             f.write(f"{ch} {i}\n")

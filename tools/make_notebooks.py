@@ -351,6 +351,7 @@ VOICE = [
 1. kaggle.com → Settings → Phone verification done (needed for GPU and Internet).
 2. Create → New Notebook → File → **Import Notebook** → upload this `.ipynb`.
 3. Right panel → Session options → **Accelerator: GPU T4 x2** (or P100); **Internet: On**.
+   The notebook uses one GPU even on T4 x2.
 4. Add-ons → **Secrets** → Add secret: label **`HF_TOKEN`**, value = a Hugging Face **read** token → tick it
    for this notebook. (The code reads it with `UserSecretsClient`; it is never printed or saved.)
 5. On huggingface.co/datasets/ai4bharat/indicvoices_r the terms must be accepted by the token's account
@@ -367,6 +368,10 @@ chosen speaker's shards ≈ 20–60 min (depends on how many shards the speaker 
 export 5 min. **≈ 3–4.5 h.** Estimates, not measurements. A Kaggle session is limited to 12 h.
 '''),
     ("code", r'''
+# One GPU, set before anything touches CUDA (the Mundari runs on "GPU T4 x2" ran out of memory
+# with the model split over two GPUs); subprocesses such as accelerate inherit it.
+import os; os.environ["CUDA_VISIBLE_DEVICES"]="0";
+os.environ["PYTORCH_CUDA_ALLOC_CONF"]=os.environ["PYTORCH_ALLOC_CONF"]="expandable_segments:True"
 # FIRST code cell: install before anything imports torch or numpy. (Installing numpy<2 after
 # torch had loaded Kaggle's numpy 2 mixed two numpy versions in one kernel: "numpy.dtype size
 # changed". Kaggle's Python 3.12 image ships numpy 2, which these pins support: no numpy pin.)
@@ -452,9 +457,17 @@ for l in lines:
     for c in l["text"]:
         if c != " " and c not in vocab: oov[c] = oov.get(c, 0) + 1
 chars = sum(len(l["text"]) for l in lines)
-print("out-of-vocabulary characters (dropped by the tokenizer):", oov, f"= {sum(oov.values()) / chars:.2%} of characters")
+oov_share = sum(oov.values()) / max(chars, 1)
+print("out-of-vocabulary characters (dropped by the tokenizer):", oov)
 random.seed(20260926); random.shuffle(lines)
 held, train = lines[:20], lines[20:]
+print(f"out-of-vocabulary share: {oov_share:.2%} of all characters (limit 1%); training clips: {len(train)} (minimum 300)")
+if oov_share > 0.01:
+    raise RuntimeError(f"STOP: {oov_share:.2%} of the characters are not in the base voice's vocabulary "
+                       "(more than 1%): the voice would drop those sounds. Fix the Ol Chiki -> Odia conversion first.")
+if len(train) < 300:
+    raise RuntimeError(f"STOP: only {len(train)} training clips (fewer than 300) for this speaker: "
+                       "too few to fine-tune a voice.")
 import csv
 with open(f"{DATA}/metadata.csv", "w", newline="", encoding="utf-8") as f:
     w = csv.writer(f); w.writerow(["file_name", "text"])
@@ -464,10 +477,21 @@ print(len(train), "train clips,", len(held), "held out")
 '''),
     ("code", r'''
 # 4. Base checkpoint with a discriminator (converted from the original MMS unr checkpoint, CC BY-NC 4.0).
+import shlex
+def run_logged(cmd, log, cwd=None):
+    """Run a shell command; its output is shown and also written to PERSIST/<log> (tee, pipefail).
+    On failure: the last 80 lines of that log, then an error."""
+    path = f"{PERSIST}/{log}"
+    r = subprocess.run(["bash", "-c", f"set -o pipefail; ( {cmd} ) 2>&1 | tee {shlex.quote(path)}"], cwd=cwd)
+    if r.returncode != 0:
+        tail = open(path, encoding="utf-8", errors="replace").read().splitlines()[-80:]
+        print(f"--- last {len(tail)} lines of {path}", *tail, sep="\n")
+        raise RuntimeError(f"failed with status {r.returncode}: {cmd[:120]} (full log: {path})")
+
 BASE_TRAIN = f"{PERSIST}/mms-unr-train"
 if not os.path.exists(f"{BASE_TRAIN}/config.json"):
-    subprocess.run(["python", "convert_original_discriminator_checkpoint.py", "--language_code", "unr",
-                    "--pytorch_dump_folder_path", BASE_TRAIN], cwd="finetune-hf-vits", check=True)
+    run_logged(f"python convert_original_discriminator_checkpoint.py --language_code unr "
+               f"--pytorch_dump_folder_path {shlex.quote(BASE_TRAIN)}", "convert_discriminator.log", cwd="finetune-hf-vits")
 '''),
     ("code", r'''
 # 5. Fine-tune. Resumes from the newest checkpoint-* in OUT.
@@ -489,14 +513,16 @@ cfg = {
   "fp16": True, "seed": 456}
 json.dump(cfg, open("finetune-hf-vits/santali.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 t0 = time.time()
-subprocess.run("accelerate launch run_vits_finetuning.py santali.json", shell=True, cwd="finetune-hf-vits", check=True)
+# One process, one GPU (no multi-GPU), fp16 as in the config.
+run_logged("accelerate launch --num_processes 1 --mixed_precision fp16 run_vits_finetuning.py santali.json",
+           "train.log", cwd="finetune-hf-vits")
 print(f"training {time.time() - t0:.0f} s")
 '''),
     ("code", r'''
 # 6. Export (the repo's exporter) + samples of the 20 held-out sentences, then zip.
 EXP = f"{PERSIST}/santali_voice_onnx"
-subprocess.run([sys.executable, "repo/tools/export/export_mms_vits_onnx.py", "--model", OUT, "--out", EXP,
-                "--check-text", held[0]["text"]], check=True)
+run_logged(f"{shlex.quote(sys.executable)} repo/tools/export/export_mms_vits_onnx.py --model {shlex.quote(OUT)} "
+           f"--out {shlex.quote(EXP)} --check-text {shlex.quote(held[0]['text'])}", "export.log")
 from transformers import VitsModel
 m = VitsModel.from_pretrained(OUT).eval().cuda(); tk = AutoTokenizer.from_pretrained(OUT)
 os.makedirs(f"{EXP}/samples", exist_ok=True)
@@ -505,7 +531,8 @@ for i, l in enumerate(held):
         w = m(**tk(l["text"], return_tensors="pt").to("cuda")).waveform[0].cpu().numpy()
     sf.write(f"{EXP}/samples/{i:02d}.wav", w, m.config.sampling_rate)
 json.dump(held, open(f"{EXP}/samples/texts.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-subprocess.run(f"cp {PERSIST}/speaker_selection.json {EXP}/ && cd {PERSIST} && zip -qr santali_voice_onnx.zip santali_voice_onnx", shell=True, check=True)
+run_logged(f"cp {PERSIST}/speaker_selection.json {EXP}/ && cd {PERSIST} && zip -qr santali_voice_onnx.zip santali_voice_onnx",
+           "zip.log")
 print(os.path.getsize(f"{PERSIST}/santali_voice_onnx.zip") / 1e6, "MB")
 '''),
 ]
