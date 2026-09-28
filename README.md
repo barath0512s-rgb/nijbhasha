@@ -35,6 +35,8 @@ What sets it apart:
 - **Never guesses**: a spoken line that matches no lesson line is refused; a doubtful model translation is flagged "⚠️ मूल वक्ता से जाँचें" and not played automatically; teacher corrections are reused first and sync between tablets.
 - **Every number is checkable**: each figure has a script and a results file (`python tools/deck_numbers.py`), choices were made by rules fixed before the results, and a leakage guard keeps test sentences out of training. What is not measured says **NOT MEASURED**.
 
+Full audit against the problem statement (R1–R5, bugs, novelty, scorecard): `docs/audit_2026-09-28.md`. Every feature and where it is shown: `docs/feature_traceability.md`.
+
 Verify in five minutes: `pip install -r requirements-ci.txt && pytest -q` (no models needed), then read `STATUS.md` (two tables at the top) and `docs/deck/SOURCES.md`.
 
 The product name is set in one place, `APP_NAME` in `config.py`.
@@ -112,6 +114,11 @@ Maturity: **production** = in the app and measured; **preview** = works, labelle
 9. **Where each translation came from.** A badge on each translation shows its source: verified glossary, teacher correction, cached, or model. No confidence number is shown, because the model's score does not tell good output from bad (`eval/model_score_sanity.py`).
 10. **Voice-to-voice timer.** The browser measures from the end of the teacher's input to the reply starting to play, and shows it.
 11. **Offline.** No internet at any point after setup.
+12. **Reading guide for the teacher.** Under every Santali reply, the same Santali in Devanagari (the transliteration the voice speaks), so a Hindi-medium teacher can read it aloud (`reading_guide.py`; hub, and the tablet from the next build).
+13. **Trust tiers.** The source badge carries a tier: **A** written by people (the glossary or a teacher's correction; native review still pending), **B** model output with no warning, **C** model output in doubt. Tier C comes from three guards: a loop guard, the round-trip check, and a **script guard** that flags Santali containing letters of another script (it found 13 of 119 lesson lines in the content pack with Urdu, Meetei Mayek, Odia or Latin letters, 6 of them not flagged before; `docs/fln_translation_sample.md`). Tier C is not played automatically.
+14. **Teacher's lesson plan (PDF).** Every line in Hindi, Ol Chiki and the reading guide, with the tier, the accepted answers and the Lakshya text (`lesson_plan.py`, `GET /lesson_plan`, the 🗒️ button in Flashcards; samples in `docs/samples/`). Laptop hub.
+15. **Community voice corpus.** An adult community member reads a line in Santali, Mundari or Ho; refused without the adult's consent; no names; stays on the laptop (`corpus/`); exported only from the laptop and only with consent to share (`corpus.py`, Settings → आवाज़ संग्रह).
+16. **Local-context lessons.** `content/samples/local_context_lesson.csv`: a Grade 1 counting lesson with village examples (sal leaves, mahua, goats, the haat) for a teacher to import; the app makes the Santali, marked for native review.
 
 ---
 
@@ -429,6 +436,7 @@ Sources: `bench/results/latency_steps_app.md`, `latency_steps_torch-t14.md`,
 |---|---|
 | Real teacher and child recordings | **NOT MEASURED** (`bench/clips/real/` is empty) |
 | ASR error rate on child speech and with classroom noise | **NOT MEASURED** (adult speech, both languages: see above) |
+| Latency tail on the laptop hub | Free Hindi speech of up to 17 words, from the end of speech: p95 3.29 s over three runs, 8 of 96 over 3 s (`bench/results/latency_percentiles.md`). Tablet lesson lines: p95 1.27 s (Realme), 0.93 s (2 GB emulator) |
 | Voice to voice from a tablet over classroom Wi-Fi | **NOT MEASURED** in a classroom. Realme Pad Mini's browser via the laptop hub over the laptop's hotspot, a spoken lesson line: 1.71, 0.97, 0.87 s (3 of 3; one speaker) |
 | A real 2 GB RAM, Android 9+ tablet | **NOT MEASURED**. Measured instead on a 2 GB Android 9 emulator and a Realme Pad Mini (4 GB, Android 11): see §2 row 5 |
 | Peak RAM of the laptop server | **NOT MEASURED** |
@@ -581,6 +589,9 @@ The pytest suite covers:
 | GET | `/curriculum/<topic>/worksheet` | An imported lesson's worksheet (PDF) |
 | GET | `/lesson_audio/<topic>/<n>` | The audio for line n of an imported lesson |
 | GET | `/hub-ca.crt` | The laptop hub's CA certificate, for tablets |
+| GET | `/lesson_plan?grade=&topic=` | The teacher's lesson plan PDF (Hindi, Ol Chiki, reading guide, tiers, answers) |
+| POST | `/corpus/record` | Community voice corpus: an adult's recording of a line (`audio`, `text`, `lang`, `adult=1`, `share`) |
+| GET | `/corpus/summary`, `/corpus/export` | Recording counts; the shareable recordings as a zip (from the laptop itself only) |
 
 A reply from `/translate/text`:
 
@@ -602,6 +613,7 @@ A reply from `/translate/text`:
 - `source` is `teacher`, `glossary`, `cached` or `model`.
 - `model_score` is set only for `model` output. It is not a quality estimate, and the UI does not show it.
 - `english_pivot` and `confidence` are always empty. They are kept so older clients do not break.
+- `reading_guide` is the Santali in Devanagari for the teacher (null for Hindi output); `needs_review` marks tier C.
 - The latency values are one example; yours will differ.
 
 ---
@@ -644,6 +656,7 @@ virtual environment. A fresh clone must download the models (§9).
 
 | Item | Impact |
 |---|---|
+| The APK has no 32-bit ARM (armeabi-v7a) build | A 32-bit-only low-cost tablet cannot install it; adding the ABI needs a rebuild (and the ONNX Runtime JNI patch for that ABI) on the team laptop |
 | No real 2 GB tablet measured | On-device results are from a 2 GB Android 9 emulator and a Realme Pad Mini (4 GB, Android 11). Translating on the tablet needs about 1.2 GB, above the 900 MB guideline, so it loads on demand |
 | Free-form speech → speech is not on the tablet | On 2 GB it works but takes p50 13.48 s (models swapped), so it stays on the laptop hub; the tablet handles spoken lesson lines and typed sentences |
 | Ho and Mundari are previews | No speech recognition for either; Mundari translation and both voices on the laptop hub only, labelled Preview, not reviewed by a native speaker; Ho has no translation |

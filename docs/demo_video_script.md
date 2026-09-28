@@ -1,6 +1,6 @@
-# Demo video script v3 (about 5 minutes)
+# Demo video script v4 (about 5 minutes)
 
-v3 (28 Sep 2026): written from `STATUS.md` only (the two tables at its top); every number
+v4 (28 Sep 2026, evening): v3 plus the reading guide, trust tiers (A/B/C) and the lesson plan, and a slide-by-slide alignment with the finale deck (`deck/final_deck.pptx`) at the end. v3 (28 Sep 2026): written from `STATUS.md` only (the two tables at its top); every number
 below is in STATUS with its evidence file. v2 is in `_archive/demo_video_script_v2.md`.
 
 Every segment carries its **device label** on screen, exactly as written here.
@@ -44,8 +44,8 @@ Two set-ups appear, never mixed in one shot:
 | 3 | 1:00–1:30 | Tablet clip | **New typed sentences (A5):** type a new Hindi sentence → Santali, translated on the tablet | Device caption, plus: **"Translated on the tablet: 1.5 s per sentence (median, 200 test sentences); quality on par with the laptop's compressed model (chrF++ 29.00 vs 28.75)."** |
 | 3b | 1:30–1:50 | Tablet browser → hub | **Tablet's microphone through the laptop hub:** the tablet's Chrome, the lesson line spoken, the Santali plays | **"Tablet browser via laptop hub, Wi-Fi: 1.71 / 0.97 / 0.87 s from the end of speech to the reply playing (3 tries, one speaker)."** |
 | 3c | 1:50–2:05 | Hub | Speak a *free* Hindi sentence on the laptop → Santali voice | **"Laptop hub: everything runs on this laptop, offline"** |
-| 4 | 2:05–2:25 | Hub | **Check with a native speaker (A3):** type a line the model gets wrong (pick one flagged in the pack); the ⚠️ मूल वक्ता से जाँचें badge shows, no auto-play, the nearest verified sentence is offered | **"A warning, not a quality score."** |
-| 5 | 2:25–3:00 | Hub | **Worksheet v2 and flashcards (A2):** कार्यपत्रक → the PDF: pictures, count and write, circle the answer, trace the numerals, the answer key page; चित्र पत्ते → 🖨️ → the cut-out cards with the review-pending mark | **"Pictures: OpenMoji (CC BY-SA 4.0). Santali lines await native review."** |
+| 4 | 2:05–2:25 | Hub | **Reading guide and tiers:** first a normal line: the Santali, the Devanagari reading guide under it, the badge "B · Model". Then a flagged line (e.g. *सबसे छोटी चीज़ पहले रखो।*): badge "C · ⚠️ Check with a native speaker", no auto-play, the nearest verified sentence offered | **"Tier C is a warning, not a quality score. The reading guide is a transliteration awaiting native review."** |
+| 5 | 2:25–3:00 | Hub | **Worksheet v2 and flashcards (A2):** कार्यपत्रक → the PDF: pictures, count and write, circle the answer, trace the numerals, the answer key page; चित्र पत्ते → 🖨️ → the cut-out cards with the review-pending mark; then 🗒️ पाठ योजना → the teacher's lesson plan (Hindi, Ol Chiki, reading guide, answers) | **"Pictures: OpenMoji (CC BY-SA 4.0). Santali lines await native review."** |
 | 6 | 3:00–3:30 | Hub | **Reading fluency (C1):** प्रगति → पढ़ने की गति जाँचें; tick the consent box; a team member reads *बगीचे की सैर*; words correct per minute and the NIPUN goal; tap one word to override | **"Checked on adult read speech; children not measured yet. The recording is not saved."** |
 | 7 | 3:30–3:45 | Hub | **Class progress by NIPUN Lakshya (A8):** the table by Lakshya and week; CSV and PDF | **"Class level only: no child names, no voices."** |
 | 8 | 3:45–4:10 | Tablet clip + hub | **Corrections between tablets (A4):** a correction on the tablet → निर्यात → the signed file merged on the hub → the next pack shows it | Device caption; **"Packs and tablet files are signed (Ed25519); a changed pack is refused."** |
@@ -63,3 +63,24 @@ Two set-ups appear, never mixed in one shot:
 | The tablet's Chrome shows ERR_CONNECTION_REFUSED on the hub | The hub is still loading its models (about 25 s); reload. The tablet must be on the laptop's hotspot. |
 | The reading check gives a low score for an adult | Recognition errors count as misreadings (5.9 % of words on adult speech); tap the word to correct it. |
 | The Mundari button is missing | The Mundari translation model is not installed on this laptop (`python tools/install_mundari_nmt.py`) or `MUNDARI_NMT_PREVIEW` is off. |
+
+## The tablet build and the new features
+
+The build on the Realme (`0.95`) predates the 28 Sep evening changes (reading guide and script guard on the
+tablet). Film the tablet clips as they are (segments 1-3, 8), or first rebuild and reinstall:
+`cd android && ./gradlew testDebugUnitTest assembleRelease`, then `python tools/android/device_check.py`.
+The reading guide, tiers and lesson plan are filmed on the laptop hub (segments 4-5).
+
+## Alignment with the finale deck
+
+| Deck slide | Shown in the video |
+|---|---|
+| F4 architecture | 1 (tablet, airplane mode), 3b (tablet browser → hub) |
+| F5 R1 translation + audio | 2, 3, 4 (reading guide, tier B) |
+| F6 R2 latency | 2 (the page's timer), 3b |
+| F7 R3 worksheets, flashcards, plan | 5 |
+| F8 R4 offline | 1 (airplane mode on screen), 8 (signed packs) |
+| F9 novelty | 4, 5, 6, 7, 8 |
+| F10 trust | 4 (tier C) |
+| F12 impact, languages | 9 (Mundari, Ho) |
+| F14 close | 11 |

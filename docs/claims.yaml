@@ -527,3 +527,19 @@
   text: "Photo import on the tablet"
   status: "NOT BUILT"
   evidence: docs/sources.md#mlkit-text
+- id: latency_p95_tablet
+  text: "Spoken lesson lines on the tablet: p95 1.27 s (Realme Pad Mini), 0.93 s (2 GB Android 9 emulator)"
+  status: "TRUE"
+  evidence: bench/results/latency_percentiles.md
+- id: latency_p95_hub
+  text: "Laptop hub, free Hindi speech of up to 17 words, end of speech: p95 3.29 s pooled over three runs; 8 of 96 over 3 s"
+  status: "TRUE"
+  evidence: bench/results/latency_percentiles.md
+- id: script_guard
+  text: "Script check over the content pack's 119 lesson lines: 13 contain a non-Ol Chiki letter, 6 of them not flagged by the round-trip check; now flagged by the script guard"
+  status: "TRUE"
+  evidence: docs/fln_translation_sample.md
+- id: reading_guide
+  text: "Every Santali reply carries a Devanagari reading guide (hub; tablet from the next build)"
+  status: "TRUE"
+  evidence: reading_guide.py

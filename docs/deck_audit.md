@@ -49,3 +49,19 @@ reading guide, lesson plans, the community corpus.
 | Limitations disclosed | S4 risks, SOURCES "does not claim" | F10, A5 |
 | Text fits, validated | `validate.py` PASS, rendered | `validate.py` PASS, rendered |
 | Screenshots current | 28 Sep | 28 Sep |
+
+## Final checklist (28 Sep 2026)
+
+| Check | Status |
+|---|---|
+| R1 has a proof slide | ✅ F5 (+ A6 real lines), S3 |
+| R2 has a proof slide | ✅ F6 (p50/p90/p95 chart, stage medians, the tail over 3 s disclosed), S4 |
+| R3 has a proof slide | ✅ F7 (real worksheet, flashcards, lesson plan; Lakshya shown), S2, S6 |
+| R4 has a proof slide | ✅ F8 (airplane mode 24/24, sizes, memory vs 2 GB, gaps disclosed), S3, S4 |
+| R5 has a proof slide | ✅ F14 (repo QR; video link placeholder), A3 (tests, CI) |
+| Every feature in the deck | ✅ `docs/feature_traceability.md` maps every row to a slide (the unused 33-pair training scaffold deliberately not shown) |
+| Every number sourced | ✅ source line on each finale slide; `docs/deck/SOURCES.md` for the submission deck |
+| Every limitation disclosed | ✅ F8, F10, A5; submission S4 risks |
+| No invented statistics, testimonials or native-speaker validation | ✅ none; PALASH figures attributed to JEPC; pilot marked "proposed, not agreed" |
+| Branding and team name unchanged | ✅ Nijbhasha, Team 8-bitPool (VITV), ID 168531 |
+| Still open | ⬜ demo video link (both decks); export the upload PDFs from PowerPoint |
