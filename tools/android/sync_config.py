@@ -19,7 +19,8 @@ DEVICE_OUT = OUT.with_name("device_config.json")
 
 def expected():
     import config
-    return json.dumps({"app_name": config.APP_NAME, "app_name_local": config.APP_NAME_LOCAL},
+    return json.dumps({"app_name": config.APP_NAME, "app_name_local": config.APP_NAME_LOCAL,
+                       "ui_english": config.UI_ENGLISH},
                       ensure_ascii=False, indent=1) + "\n"
 
 

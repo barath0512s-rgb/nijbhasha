@@ -141,7 +141,8 @@ def index():
 def client_config():
     """Product name for the UI, so a rename is one edit in config.py."""
     return jsonify({"app_name": config.APP_NAME,
-                    "app_name_local": config.APP_NAME_LOCAL})
+                    "app_name_local": config.APP_NAME_LOCAL,
+                    "ui_english": config.UI_ENGLISH})
 
 
 def _size(path):

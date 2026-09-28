@@ -143,6 +143,12 @@ TESSERACT_CMD = None               # None: PATH, then C:\Program Files\Tesseract
 MUNDARI_NMT_PREVIEW = True
 MUNDARI_NMT_DIR = MODELS_DIR / "indictrans2-mundari-onnx"
 
+# ── Interface languages ───────────────────────────────────────────────────────
+# The page offers Hindi and Santali; with UI_ENGLISH also English (every label,
+# button and message; lesson lines and translations stay Hindi and Santali).
+# Off: English only in evaluator mode (?evaluator=1).
+UI_ENGLISH = True
+
 # ── Worksheets (A2) ───────────────────────────────────────────────────────────
 # v2: student exercises with pictures (count and write, match, fill in the blank,
 # circle the answer, trace the numeral) and a teacher answer key; cut-out

@@ -37,10 +37,25 @@ def test_olchiki_font_is_in_every_text_stack():
         assert m and "Noto Sans Ol Chiki" in m.group(1), var
 
 
-def test_english_is_hidden_unless_evaluator_mode():
-    # The teacher's screen has no English; ?evaluator=1 shows the EN button.
-    assert re.search(r'<button id="langEn"[^>]*\bhidden\b', HTML)
-    assert 'get("evaluator")' in HTML
+def test_english_is_a_third_interface_language():
+    # Hindi, Santali and English buttons; English hides only when /config says ui_english is false
+    # (config.UI_ENGLISH), and evaluator mode (?evaluator=1) still shows it then.
+    assert re.search(r'<button id="langEn"[^>]*>English</button>', HTML)
+    assert not re.search(r'<button id="langEn"[^>]*\bhidden\b', HTML)
+    assert "englishOption(c.ui_english)" in HTML and 'get("evaluator")' in HTML
+
+
+def test_every_interface_string_has_english():
+    """Every key of the Hindi table exists in the English one (a missing key would show Hindi)."""
+    hi = HTML[HTML.index("\nhi: {"):HTML.index("\nsat: {")]
+    en = HTML[HTML.index("\nen: {"):HTML.index("\n};", HTML.index("\nen: {"))]
+    keys = lambda block: set(re.findall(r"(?m)(?:^|[,{\s])([a-z][a-z0-9_]*)\s*:", block))
+    assert keys(hi) - keys(en) <= {"hi"}, sorted(keys(hi) - keys(en))
+
+
+def test_config_offers_english():
+    import config
+    assert config.UI_ENGLISH is True
 
 
 def test_the_page_runs_on_android_9_webview():

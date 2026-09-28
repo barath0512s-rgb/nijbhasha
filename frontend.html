@@ -920,7 +920,7 @@ input:focus,textarea:focus,select:focus{
       <div class="lang" role="group" aria-label="भाषा">
         <button id="langHi"  aria-pressed="true">हिंदी</button>
         <button id="langSat" aria-pressed="false">ᱥᱟᱱᱛᱟᱲᱤ</button>
-        <button id="langEn"  aria-pressed="false" hidden>EN</button>
+        <button id="langEn"  aria-pressed="false" lang="en">English</button>
       </div>
       <button class="round" id="bigBtn" aria-pressed="false" data-tt="tip_big" title="बड़े अक्षर">🔍</button>
     </div>
@@ -955,7 +955,7 @@ input:focus,textarea:focus,select:focus{
       <p class="label" data-t="sess_title">इस कक्षा में</p>
       <div class="r"><span data-t="sess_time">समय</span><b id="clock">००:००</b></div>
       <div class="r"><span data-t="sess_lines">पंक्तियाँ</span><b id="mLines">०</b></div>
-      <div class="r"><span data-t="sess_last">पिछली बार</span><b id="mLast">०.००</b></div>
+      <div class="r"><span data-t="sess_last">पिछली बार</span><b id="mLast" data-num="0.00">०.००</b></div>
       <div class="r"><span data-t="sess_right">सही उत्तर</span><b id="mRight">०%</b></div>
       <div class="plan">
         <p class="label" data-t="sess_plan">पाठ की पंक्तियाँ</p>
@@ -1032,11 +1032,11 @@ input:focus,textarea:focus,select:focus{
       <h2><span class="e">⏱️</span> <span data-t="t1_title">कितना समय लगा</span></h2>
       <p class="sub" data-t="t1_sub">बोलने से सुनाने तक</p>
       <div class="body">
-        <div class="speed"><b id="total">०.००</b><span data-t="t1_sec">सेकंड</span></div>
+        <div class="speed"><b id="total" data-num="0.00">०.००</b><span data-t="t1_sec">सेकंड</span></div>
         <div class="bars">
-          <div class="bar"><span data-t="t1_hear">सुनना</span><span class="track"><i id="bA"></i></span><span id="vA">०.००</span></div>
-          <div class="bar"><span data-t="t1_trans">अनुवाद</span><span class="track"><i id="bN"></i></span><span id="vN">०.००</span></div>
-          <div class="bar"><span data-t="t1_speak">बोलना</span><span class="track"><i id="bT"></i></span><span id="vT">०.००</span></div>
+          <div class="bar"><span data-t="t1_hear">सुनना</span><span class="track"><i id="bA"></i></span><span id="vA" data-num="0.00">०.००</span></div>
+          <div class="bar"><span data-t="t1_trans">अनुवाद</span><span class="track"><i id="bN"></i></span><span id="vN" data-num="0.00">०.००</span></div>
+          <div class="bar"><span data-t="t1_speak">बोलना</span><span class="track"><i id="bT"></i></span><span id="vT" data-num="0.00">०.००</span></div>
         </div>
       </div>
       <p class="foot-note" id="speedNote" data-t="t1_note">लिखी पंक्ति में सुनने का समय नहीं लगता</p>
@@ -1091,9 +1091,9 @@ input:focus,textarea:focus,select:focus{
   </div>
   <div class="filters" id="filters">
     <button aria-pressed="true"  data-g="all" data-t="les_all">सब</button>
-    <button aria-pressed="false" data-g="1"><span data-t="les_grade">कक्षा</span> १</button>
-    <button aria-pressed="false" data-g="2"><span data-t="les_grade">कक्षा</span> २</button>
-    <button aria-pressed="false" data-g="3"><span data-t="les_grade">कक्षा</span> ३</button>
+    <button aria-pressed="false" data-g="1"><span data-t="les_grade">कक्षा</span> <span data-num="1">१</span></button>
+    <button aria-pressed="false" data-g="2"><span data-t="les_grade">कक्षा</span> <span data-num="2">२</span></button>
+    <button aria-pressed="false" data-g="3"><span data-t="les_grade">कक्षा</span> <span data-num="3">३</span></button>
     <button aria-pressed="false" data-g="0" data-t="balvatika">बालवाटिका</button>
   </div>
   <p class="imp-open"><button class="btn go" id="impOpen" type="button" data-t="imp_add">➕ नया पाठ जोड़िए</button></p>
@@ -1224,7 +1224,7 @@ input:focus,textarea:focus,select:focus{
         </div>
         <div class="srow">
           <span class="txt"><b data-t="se_grade">आपकी कक्षा</b></span>
-          <select id="defGrade" aria-label="आपकी कक्षा"><option value="1">१</option><option value="2" selected>२</option><option value="3">३</option></select>
+          <select id="defGrade" aria-label="आपकी कक्षा"><option value="1" data-num="1">१</option><option value="2" selected data-num="2">२</option><option value="3" data-num="3">३</option></select>
         </div>
         <div class="srow" style="border:0">
           <button class="btn go" id="saveSet"><span class="e">💾</span> <span data-t="se_save">सहेजें</span></button>
@@ -1483,6 +1483,7 @@ sat: {
 },
 en: {
   skip:"Skip to the lesson", brand:"Nijbhasha",
+  err_file_encoding:"The file must be UTF-8 text.", err_json_bad:"The JSON file could not be read.", err_json_shape:"The JSON file must hold a list with grade, topic and line.", err_file_type:"Choose a .txt, .csv or .json file.", err_no_text:"The lesson has no text.", err_row_bad:"Row {n} of the file is not valid.", err_no_rows:"The file has no rows with grade, topic and line.", err_grade:"The class must be Balvatika, 1, 2 or 3.", err_title:"Write the lesson's name.", err_title_long:"Keep the lesson's name under {n} characters.", err_no_lines:"The lesson has no lines.", err_too_many_lines:"A lesson can have at most {n} lines.", err_line_bad:"Line {n} is not valid.", err_line_not_hindi:"Line {n} is not in Hindi (Devanagari).", err_line_long:"Line {n} is too long.", err_line_type:"The type of line {n} is not valid.", err_confirm:"Check the NIPUN goals and confirm them first.", err_no_goals:"Choose at least one NIPUN goal.", err_goal_unknown:"This NIPUN goal is not valid.", err_goal_domains:"Choose goals from one area only: literacy or numeracy.",
   nav_class:"Classroom", nav_lessons:"Lessons", nav_cards:"Flashcards", nav_progress:"Progress", nav_settings:"Settings",
   conn_wait:"Connecting", conn_up:"Server up", conn_down:"No server",
   tip_big:"Bigger type", pick_lesson:"Choose a lesson",
@@ -1814,6 +1815,12 @@ function applyLang(){
   $("#langHi").setAttribute("aria-pressed", String(L === "hi"));
   $("#langSat").setAttribute("aria-pressed", String(L === "sat"));
   $("#langEn").setAttribute("aria-pressed", String(L === "en"));
+  // Numbers written into the page as placeholders: redrawn in this language's digits while
+  // they still show the placeholder (a real value is drawn by its own function).
+  const plain = x => x.replace(/[\u0966-\u096F]/g, c => c.charCodeAt(0) - 0x966)
+                      .replace(/[\u1C50-\u1C59]/g, c => c.charCodeAt(0) - 0x1C50);
+  $$("[data-num]").forEach(el => { if (plain(el.textContent) === el.dataset.num) el.textContent = num(el.dataset.num); });
+  facing();                              // the Translate button's label follows the language too
   localStorage.setItem("vs_lang", L);
   setOnline(S.online);
   if (S.lesson) draw();
@@ -1825,15 +1832,19 @@ $("#langHi").onclick  = () => { S.lang = "hi";  applyLang(); };
 $("#langSat").onclick = () => { S.lang = "sat"; applyLang(); };
 $("#langEn").onclick  = () => { S.lang = "en";  applyLang(); };
 
-/* Evaluator mode: the teacher UI has no English. ?evaluator=1 shows the EN
-   button for judges and reviewers on this device; ?evaluator=0 hides it again. */
+/* English interface: shown unless /config says ui_english is false (config.UI_ENGLISH).
+   Evaluator mode (?evaluator=1, remembered on this device; ?evaluator=0 clears it)
+   shows it even then. Lesson lines and translations stay Hindi and Santali. */
 (function evaluatorMode(){
   const q = new URLSearchParams(location.search).get("evaluator");
   try { if (q !== null) localStorage.setItem("vs_eval", q === "1" ? "1" : "0"); } catch(e){}
   try { S.evaluator = localStorage.getItem("vs_eval") === "1"; } catch(e){ S.evaluator = q === "1"; }
-  $("#langEn").hidden = !S.evaluator;
-  if (!S.evaluator && S.lang === "en") S.lang = "hi";
 })();
+function englishOption(allowed){
+  const show = allowed !== false || S.evaluator;
+  $("#langEn").hidden = !show;
+  if (!show && S.lang === "en"){ S.lang = "hi"; applyLang(); }
+}
 
 /* ───────────────── connection badge ───────────────── */
 function setOnline(up, extra){
@@ -3043,6 +3054,7 @@ async function boot(quiet){
   // only fallbacks for when the server cannot be reached.
   try {
     const c = await (await api("/config")).json();
+    englishOption(c.ui_english);
     for (const k of Object.keys(c.app_name_local || {})) if (T[k]) T[k].brand = c.app_name_local[k];
     S.appName = c.app_name;
     applyLang();
