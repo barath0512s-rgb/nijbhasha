@@ -129,3 +129,15 @@ def test_answer_key_accepts_alternatives_and_numbers():
     k = c.answer_key("तीन")
     assert k["hi"] == ["तीन"] and k["digits"] == ["3"]
     assert c.answer_key("  ") is None
+
+
+def test_the_local_context_sample_imports_as_one_lesson():
+    from pathlib import Path
+    p = Path(__file__).resolve().parent.parent / "content" / "samples" / "local_context_lesson.csv"
+    (d,) = c.parse_upload(filename=p.name, data=p.read_bytes())
+    assert d["grade"] == "1" and d["title"] == "गाँव में गिनती"
+    lines = c.draft(d)["lines"]
+    assert len(lines) == 11                                  # sentences are split
+    assert c.suggest(d["grade"], [l["hindi"] for l in lines])["lakshya_ids"] == ["NIPUN-G1-NUM-2"]
+    assert {"lesson_script", "activity_instruction", "assessment_prompt"} >= {l["type"] for l in lines}
+    assert any(l["type"] == "assessment_prompt" for l in lines)
