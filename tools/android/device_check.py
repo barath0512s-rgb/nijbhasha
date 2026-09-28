@@ -328,12 +328,22 @@ def stage_setup(s, a, st):
     install(s, a.apk)
     grant_mic(s)
     imp = f"/sdcard/Android/data/{PKG}/files/import"
-    adb(s, "shell", "mkdir", "-p", imp)
     adb(s, "forward", f"tcp:{PORT}", "tcp:5000")
+    # The app must create its import folder itself: on Android 11 (scoped storage) a
+    # folder made by adb belongs to the shell user and the app cannot list it
+    # (found on the Realme Pad Mini, 27 Sep 2026). Start the app, push, bring it back
+    # to the front so onResume imports.
+    adb(s, "shell", "am", "start", "-W", "-n", f"{PKG}/.MainActivity")
+    for _ in range(30):
+        if "u0_a" in adb(s, "shell", "ls", "-ld", imp, check=False):
+            break
+        time.sleep(1)
     smp = Sampler(s, st)
     try:
         t0 = time.time()
         adb(s, "push", str(a.pack), f"{imp}/pack.zip", timeout=300)
+        adb(s, "shell", "input", "keyevent", "KEYCODE_HOME")
+        time.sleep(1)
         adb(s, "shell", "am", "start", "-W", "-n", f"{PKG}/.MainActivity")
         counts = None
         while time.time() - t0 < 240:
@@ -456,6 +466,7 @@ def stage_report(s, a, st):
 
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8")        # the report holds Ol Chiki; a Windows console or log is cp1252
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--apk", type=Path, required=True, help="the build to test (release)")
     ap.add_argument("--debug-apk", type=Path, help="debug build of the same code, for the MicBridge capture")

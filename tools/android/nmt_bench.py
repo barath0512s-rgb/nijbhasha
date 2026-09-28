@@ -48,8 +48,17 @@ def pctl(xs, q):
 
 def import_pack(s, pattern):
     z = sorted(glob.glob(str(ROOT / "dist" / "packs" / pattern)))[-1]
-    dc.adb(s, "shell", "mkdir", "-p", f"{EXT}/import")
+    # The app creates its import folder itself (see device_check.stage_setup: on Android 11
+    # a folder made by adb could not be listed by the app), then the pack is pushed and
+    # the app brought back to the front so onResume imports it.
+    dc.adb(s, "shell", "am", "start", "-W", "-n", f"{PKG}/.MainActivity")
+    for _ in range(30):
+        if "u0_a" in dc.adb(s, "shell", "ls", "-ld", f"{EXT}/import", check=False):
+            break
+        time.sleep(1)
     dc.adb(s, "push", z, f"{EXT}/import/{Path(z).name}", timeout=1800)
+    dc.adb(s, "shell", "input", "keyevent", "KEYCODE_HOME")
+    time.sleep(1)
     dc.adb(s, "shell", "am", "start", "-n", f"{PKG}/.MainActivity")
     t0 = time.time()
     while dc.adb(s, "shell", "ls", f"{EXT}/import/", check=False).strip():
