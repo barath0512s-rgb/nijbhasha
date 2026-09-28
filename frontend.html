@@ -1904,10 +1904,28 @@ $$(".modes button").forEach(b => b.onclick = () => {
 function gradeName(g){
   return String(g) === "0" ? t("balvatika") : t("grade") + " " + num(g);
 }
+// English titles for the team-written lessons (content/team_lessons.json), keyed by the Hindi
+// title and shown only in the English interface. Titles only: the lesson lines stay Hindi.
+const TEAM_TITLE_EN = {
+  "पाँच तक गिनती": "Counting to five",
+  "छोटे से बड़े तक": "From small to big",
+  "अक्षर म": "The letter म (ma)",
+  "दो अक्षर वाले शब्द": "Two-letter words",
+  "दस से बीस तक": "From ten to twenty",
+  "छोटे वाक्य पढ़ना": "Reading short sentences",
+  "सौ से बड़ी संख्याएँ": "Numbers above a hundred",
+  "कहानी सुनो और समझो": "Listen to a story and understand it",
+  "गुणा: बराबर समूह": "Multiplication: equal groups",
+  "पढ़कर समझना": "Reading with understanding",
+  "हज़ार तक की संख्याएँ": "Numbers up to a thousand",
+  "ज़ोर से पढ़ना: रीना और तालाब": "Reading aloud: Reena and the pond",
+  "पढ़ने की गति: बगीचे की सैर": "Reading speed: a walk in the garden",
+};
+const teamTitle = title => (S.lang === "en" && TEAM_TITLE_EN[title]) || title;
 function lessonName(l){
   const m = LESSON[l.topic];
   // An imported lesson's competency is the Lakshya's English text; show its IDs.
-  if (!m) return [l.title, l.imported ? (l.lakshya_ids || []).join(", ") : l.competency];
+  if (!m) return [teamTitle(l.title), l.imported ? (l.lakshya_ids || []).join(", ") : l.competency];
   return m[S.lang] || m.hi;
 }
 function draw(){
@@ -2700,7 +2718,7 @@ function buildDeckPicker(){
     // Built-in lessons have names in every UI language; an imported one has
     // the teacher's own title.
     const m = LESSON[k];
-    const nm = m ? (m[S.lang] || m.hi)[0] : S.decks[k].title;
+    const nm = m ? (m[S.lang] || m.hi)[0] : teamTitle(S.decks[k].title);
     const esc = document.createElement("span"); esc.textContent = nm;
     return `<button data-deck="${k}" aria-pressed="${k === S.deck}">${m ? m.e : "🎴"} ${esc.innerHTML}</button>`;
   }).join("");

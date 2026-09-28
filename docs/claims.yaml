@@ -508,7 +508,7 @@
   status: "NOT MEASURED"
   evidence: docs/model_cards/santali_voice_c4.md
 - id: ui_english
-  text: "The app's interface (every label, button and message) can be switched to English next to Hindi and Santali, on the hub and the tablet (flag UI_ENGLISH); lesson lines and translations stay Hindi and Santali, and the 13 team-written lessons have no English titles"
+  text: "The app's interface (every label, button and message) can be switched to English next to Hindi and Santali, on the hub and the tablet (flag UI_ENGLISH); lesson lines and translations stay Hindi and Santali; every lesson has an English title in the English interface (the 13 team-written lessons' titles added 28 Sep)"
   status: "TRUE"
   evidence: tests/test_frontend_offline.py
 - id: c1_orf_alignment

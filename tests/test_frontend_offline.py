@@ -73,3 +73,14 @@ def test_the_page_runs_on_android_9_webview():
               r"globalThis": "globalThis", r"structuredClone": "structuredClone", r"Promise\.any": "Promise.any"}
     found = [name for pat, name in banned.items() if re.search(pat, js)]
     assert not found, f"not in Chrome 69: {found}"
+
+
+def test_every_team_lesson_has_an_english_title():
+    """Shown only in the English interface (titles only; the lesson lines stay Hindi)."""
+    import json
+    from pathlib import Path
+    block = HTML[HTML.index("const TEAM_TITLE_EN = {"):HTML.index("};", HTML.index("const TEAM_TITLE_EN = {"))]
+    mapped = set(re.findall(r'"([^"]+)":', block))
+    team = json.loads((Path(__file__).parent.parent / "content" / "team_lessons.json").read_text(encoding="utf-8"))
+    assert {l["title"] for l in team["lessons"]} <= mapped
+    assert 'S.lang === "en" && TEAM_TITLE_EN[title]' in HTML
