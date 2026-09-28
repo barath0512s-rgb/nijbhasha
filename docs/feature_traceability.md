@@ -107,7 +107,7 @@ appears in the decks.
 | Test suite: 332 pass without models, 38 need models | `tests/` | R5 | — | done | A3 |
 | Model download with pinned revisions and checks | `download_models.py`, `model_manifest.json`, `verify_models.py` | R5 | — | done | A1 |
 | Licences (MIT code, GPL APK, model / voice / data licences) | `LICENSE`, `THIRD_PARTY_LICENSES.md` | R5 | — | done | A1 |
-| Demo video script v3, reset tool | `docs/demo_video_script.md`, `tools/demo_reset.py` | R5 | — | done; video **planned** | F14 |
+| Demo video script v4, recording guide, reset and link tools | `docs/demo_video_script.md`, `docs/RECORDING_GUIDE.md`, `tools/demo_reset.py`, `tools/set_video_link.py` | R5 | — | done; video **planned** | F14 |
 | Audit, deck audit, narrative | `docs/audit_2026-09-28.md`, `docs/deck_audit.md`, `docs/winning_narrative.md` | R5 | — | done | A7 |
 | Unused training scaffold (33 pairs, no accuracy figure uses it) | `train_nmt.py`, `generate_dataset.py`, `training_data/` | — | — | not used | not shown |
 

@@ -641,7 +641,8 @@ A reply from `/translate/text`:
 | `tools/make_cert.py` | Certificate for the HTTPS laptop hub |
 | `curriculum.py` | Curriculum import: reading uploads, splitting, labels, goal suggestions, flashcard words |
 | `content/team_lessons.json`, `tools/import_lessons.py` | The team's 13 lessons (added on first start), and a script to import other lesson files through the import endpoints |
-| `tools/demo_reset.py`, `docs/demo_video_script.md` | Getting ready to record the demo, and the shot list |
+| `tools/demo_reset.py`, `docs/demo_video_script.md`, `docs/RECORDING_GUIDE.md` | Getting ready to record the demo, the shot list, and how to record the laptop and the tablet |
+| `tools/set_video_link.py`, `docs/SUBMISSION_CHECKLIST.md` | Putting the video link into the README and both decks; the steps left before submission |
 | `docs/` | Lakshya mapping, glossary changes, the native-review list |
 | `THIRD_PARTY_LICENSES.md` | Model, voice, package and font licences |
 | `training_data/`, `train_nmt.py`, `generate_dataset.py` | A 33-pair corpus and a LoRA script. Not used for any accuracy figure |

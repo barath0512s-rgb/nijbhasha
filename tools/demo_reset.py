@@ -46,6 +46,16 @@ DEMO_HINDI = [
 ]
 DEMO_SANTALI = ["ᱯᱮ ᱟᱨ ᱯᱩᱱ ᱡᱚᱛᱚ ᱦᱩᱭᱩᱜᱼᱟ?"]
 DEMO_CORRECTION_LINE = "गांव के बच्चे खेत में खेल रहे हैं।"
+# Segment 4 (reading guide and tiers): lines that came back flagged (tier C) in the
+# 26 Sep content pack. The hub may answer differently; the warm-up prints which are
+# flagged now, so the take uses one that is.
+DEMO_TIER_C_CANDIDATES = [
+    "सबसे छोटी चीज़ पहले रखो।",
+    "सबसे बड़ी चीज़ आखिर में रखो।",
+    "उसके बाद उससे बड़ी चीज़ रखो।",
+    "आज रविवार है।",
+    "सोनू हर सुबह कहाँ जाता है?",
+]
 
 
 def call(base, path, body=None, files=None):
@@ -135,8 +145,19 @@ def main():
         wav = call(base, spoken["audio_url"])
         r = call(base, "/translate/audio", {"direction": direction}, files=("warm.wav", wav))
         print(f"   speech {lang}: heard '{r.get('recognized_text', '')[:40]}'")
+    flagged = []
+    for line in DEMO_TIER_C_CANDIDATES:
+        r = call(base, "/translate/text", {"text": line, "direction": "hi-to-sat"})
+        if r.get("needs_review"):
+            flagged.append(line)
+    if flagged:
+        print(f"   segment 4, tier C line to type: {flagged[0]}  (also flagged: {', '.join(flagged[1:]) or 'none'})")
+    else:
+        print("   segment 4: none of the candidate lines is flagged now; show the reading guide and tier B only")
     decks = call(base, "/flashcards")["decks"]
     print(f"   flashcards: {len(decks)} decks")
+    plan = call(base, "/lesson_plan?grade=2&topic=addition")
+    print(f"   lesson plan: {len(plan)} bytes")
     pdf = call(base, "/worksheet", {"hindi_text": DEMO_HINDI[0], "santali_text": "", "grade": "2"})
     print(f"   worksheet: {len(pdf)} bytes")
     print(f"   warm-up took {time.time() - t0:.1f} s")
