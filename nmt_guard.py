@@ -51,3 +51,16 @@ def cut_stem_loop(text):
     if k is None:
         return text, False
     return " ".join(words[:k - WINDOW + 1]), True
+
+
+# ── Script guard ──────────────────────────────────────────────────────────────
+# IndicTrans2 sometimes writes a word of Santali output in another script: Meetei
+# Mayek (ꯎꯆꯦꯛ for "bird"), Urdu (صبح "morning", اتوار "Sunday"), Odia or Latin
+# pieces. On the 26 Sep content pack, 14 of 203 Hindi -> Santali lines did, and 7
+# of them passed the round-trip check (docs/fln_translation_sample.md). A child
+# cannot read them and the voice cannot say them, so such output is flagged for
+# a native speaker like a loop. Spaces, digits and punctuation are allowed.
+
+def foreign_letters(text):
+    """Letters in Santali output that are not Ol Chiki (U+1C50-U+1C7F), in order; "" if none."""
+    return "".join(dict.fromkeys(c for c in text or "" if c.isalpha() and not 0x1C50 <= ord(c) <= 0x1C7F))

@@ -7,6 +7,7 @@ import soundfile as sf
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 from IndicTransToolkit.processor import IndicProcessor
 import database
+import nmt_guard
 database.init_db()
 from education_glossary import lookup_hi_to_sat, lookup_sat_to_hi
 
@@ -309,6 +310,10 @@ class VaaniSetuPipeline:
             # A loop was cut or found: the text is not a translation to present as one.
             result["needs_review"] = True
             result["review_reason"] = "loop"
+        elif fwd and nmt_guard.foreign_letters(out):
+            # A word in another script (nmt_guard.foreign_letters): not readable Santali.
+            result["needs_review"] = True
+            result["review_reason"] = "script"
         if roundtrip and fwd:
             self._roundtrip(text, result)
         TRANSLATION_CACHE[key] = result

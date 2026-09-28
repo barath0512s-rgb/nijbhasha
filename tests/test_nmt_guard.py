@@ -1,6 +1,8 @@
 """The int8 translation guards (nmt_guard.py), on the run-on outputs actually seen
 (no models needed)."""
 
+from pathlib import Path
+
 from nmt_guard import cut_stem_loop, length_cap, stem_loop
 
 
@@ -37,3 +39,23 @@ def test_length_cap():
     assert length_cap(8) == 26
     assert length_cap(40) == 90
     assert length_cap(100) == 128
+
+
+# ── script guard (nmt_guard.foreign_letters) ─────────────────────────────────
+def test_foreign_letters_finds_other_scripts_in_santali_output():
+    from nmt_guard import foreign_letters
+    # real outputs from the 26 Sep content pack (docs/fln_translation_sample.md)
+    assert foreign_letters("ᱢᱤᱫᱴᱟᱝ ᱟᱛᱳ ᱨᱮ ᱢᱤᱫᱴᱟᱝ ᱠᱷᱮᱹᱞᱚᱜ ᱠᱟᱱ ꯎꯆꯦꯛ ᱛᱟᱦᱮᱸ ᱠᱟᱱᱟ ᱾")      # Meetei Mayek
+    assert foreign_letters("ᱛᱮᱦᱮᱧ ᱫᱚ اتوار ᱾")                                         # Urdu
+    assert foreign_letters("ᱰᱟᱣun ᱰᱟᱣୂନ")                                              # Latin, Odia
+    assert foreign_letters("ᱛᱮᱦᱮᱸᱡ ᱟᱞᱮ ᱢᱤᱫ ᱠᱷᱚᱱ ᱜᱮᱞ ᱛᱩᱨᱩᱭ ᱜᱤᱱᱛᱤ ᱥᱮᱪᱮᱫᱟ।") == ""
+    assert foreign_letters("᱓ + ᱔ = ? 7, ᱾ ?") == ""                                    # digits, punctuation
+    assert foreign_letters("") == "" and foreign_letters(None) == ""
+
+
+def test_the_pipeline_flags_foreign_script_model_output():
+    src = (Path(__file__).resolve().parent.parent / "pipeline.py").read_text(encoding="utf-8")
+    assert "nmt_guard.foreign_letters(out)" in src and 'result["review_reason"] = "script"' in src
+    kt = (Path(__file__).resolve().parent.parent /
+          "android/app/src/main/java/org/team8bitpool/app/core/Api.kt").read_text(encoding="utf-8")
+    assert kt.count("foreignLetters(out)") == 2       # typed and spoken replies on the tablet

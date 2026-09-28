@@ -242,7 +242,8 @@ class Api(
         val chunk = JSONObject().put("type", "chunk").put("i", 0).put("source_text", recognized)
             .put("translated_text", out ?: "").put("source", source).put("audio_url", audioUrl ?: JSONObject.NULL)
             .put("tts_error", ttsError).put("tts_engine", engine).put("ms", (t3 - t0) / 1_000_000)
-            .put("needs_review", teacher == null && (entry?.optBoolean("needs_review") == true || free?.needsReview == true))
+            .put("needs_review", teacher == null && (entry?.optBoolean("needs_review") == true || free?.needsReview == true
+                || (outLang == "sat" && foreignLetters(out))))
             .put("nearest_verified", JSONObject.NULL).put("match", match)
             .put("review_status", entry?.optString("review_status") ?: JSONObject.NULL)
             .put("reading_guide", readingGuide(out))
@@ -386,9 +387,14 @@ class Api(
             .put("tts_engine", engine)
             .put("latency", lat).put("english_pivot", "").put("confidence", JSONObject.NULL)
             // A3: a pack line the round-trip check flagged (a teacher's correction clears it)
-            .put("needs_review", source != "teacher" && (fromPack?.optBoolean("needs_review") == true || deviceModel?.needsReview == true))
+            .put("needs_review", source != "teacher" && (fromPack?.optBoolean("needs_review") == true || deviceModel?.needsReview == true
+                || (lang == "sat" && foreignLetters(out))))
             .put("reading_guide", readingGuide(out)))
     }
+
+    /** A letter that is not Ol Chiki in Santali output: flagged for review (the hub's nmt_guard.foreign_letters). */
+    private fun foreignLetters(text: String?): Boolean =
+        text != null && text.any { it.isLetter() && it.code !in 0x1C50..0x1C7F }
 
     /** Santali written in Devanagari so the teacher can read it aloud (the hub's reading_guide.py). */
     private fun readingGuide(text: String?): Any =
