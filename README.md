@@ -18,6 +18,25 @@ Santali. The teacher hears Hindi.
 | Interface languages | हिंदी, ᱥᱟᱱᱛᱟᱲᱤ (Santali) and English, one button each, on the hub and the tablet |
 | Current state | `STATUS.md`, the two tables at its top (submission freeze, 28 Sep 2026). Where this README and those tables differ, the tables win |
 
+### At a glance (for evaluators)
+
+| | Measured, offline |
+|---|---|
+| Voice to voice on the tablet, spoken lesson lines | Realme Pad Mini (4 GB, Android 11): **p50 0.70 s, p90 1.20 s** (n = 50); 2 GB Android 9 emulator: p50 0.50 s, p90 0.82 s |
+| Voice to voice on the laptop hub, free speech | Hindi → Santali, ≤ 17 words, from the end of speech: **p90 2.85 s**; Santali → Hindi: p90 2.58 s |
+| Typed new sentences translated on the tablet | Realme Pad Mini p50 1.50 s; 2 GB emulator p50 0.60 s |
+| Airplane mode on the tablet | **24 of 24** contract cases (Realme Pad Mini and the 2 GB emulator) |
+| Translation quality, Hindi → Santali (public test sets) | chrF++ 31.3 (IN22-Gen), **32.2 (IN22-Conv)**, 27.4 (FLORES-200) |
+| Mundari (our LoRA adapters, preview) | held-out chrF++ hi→unr 30.92, unr→hi 35.97 (MMLoSo 2025 data; not comparable with the Santali test sets) |
+
+What sets it apart:
+- **Offline end to end, on the tablet itself**: speech recognition, translation and speech in airplane mode, from signed content and model packs (Ed25519; a changed pack is refused).
+- **The whole lesson, not just translation**: 18 NIPUN-tagged lessons, answer checking, bilingual worksheets and flashcards, a reading-fluency check against the NIPUN words-per-minute goals, class progress by Lakshya, and lessons a teacher adds from Hindi text.
+- **Never guesses**: a spoken line that matches no lesson line is refused; a doubtful model translation is flagged "⚠️ मूल वक्ता से जाँचें" and not played automatically; teacher corrections are reused first and sync between tablets.
+- **Every number is checkable**: each figure has a script and a results file (`python tools/deck_numbers.py`), choices were made by rules fixed before the results, and a leakage guard keeps test sentences out of training. What is not measured says **NOT MEASURED**.
+
+Verify in five minutes: `pip install -r requirements-ci.txt && pytest -q` (no models needed), then read `STATUS.md` (two tables at the top) and `docs/deck/SOURCES.md`.
+
 The product name is set in one place, `APP_NAME` in `config.py`.
 
 **Every number in this README comes from a script in this repository.** Run

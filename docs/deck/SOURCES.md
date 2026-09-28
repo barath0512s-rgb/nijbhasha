@@ -29,4 +29,7 @@ What the deck does **not** claim: a real 2 GB tablet, free-form speech on the ta
 review of any Santali or Mundari output, children's speech, or tablet output identical to the
 laptop's (see the do-not-say list in `docs/demo_video_script.md`).
 
+| 2 | "Never guesses": unmatched spoken lines refused on the tablet; doubtful model output flagged | STATUS A1 (matcher), A3 (round-trip flag) |
+| 3, 4 | Our training: Mundari LoRA adapters; Santali voice fine-tuned on one IndicVoices-R speaker and scored by the rule fixed on 27 Sep (Piper stays) | STATUS C3, C4; `docs/voice_rule_finale.md` |
+
 Still to fill: the demo video link on slide 6 (placeholder "[add link after recording]").
