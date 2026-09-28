@@ -498,6 +498,27 @@ if not os.path.exists(f"{BASE_TRAIN}/config.json"):
                f"--pytorch_dump_folder_path {shlex.quote(BASE_TRAIN)}", "convert_discriminator.log", cwd="finetune-hf-vits")
 '''),
     ("code", r'''
+# 4b. Patch finetune-hf-vits (pinned 6f3f51f) for a single-speaker dataset: only the READS of
+# batch["speaker_id"] (lines 1099, 1288, 1390) become batch.get("speaker_id"); the assignments
+# (lines 380, 753) must stay. A global replace turned them into `batch.get(...) = ...`: SyntaxError.
+import re, py_compile
+SCRIPT = "finetune-hf-vits/run_vits_finetuning.py"
+src = open(SCRIPT, encoding="utf-8").read()
+# 1. Undo a previously broken file: an assignment to batch.get("speaker_id") back to batch["speaker_id"].
+src, undone = re.subn(r'batch\.get\(\s*["\']speaker_id["\']\s*\)(?=\s*=[^=])', 'batch["speaker_id"]', src)
+# 2. Patch the reads only: not followed by "=" (an assignment), "==" is still a read.
+src, patched = re.subn(r'batch\["speaker_id"\](?!\s*=[^=])', 'batch.get("speaker_id")', src)
+open(SCRIPT, "w", encoding="utf-8").write(src)
+py_compile.compile(SCRIPT, doraise=True)
+print(f"undone {undone}, patched {patched} (0 on a re-run: already patched)")
+for n, line in enumerate(src.splitlines(), 1):
+    if 'batch["speaker_id"]' in line or 'batch.get("speaker_id")' in line:
+        print(f"{n:5}: {line.strip()}")
+assigns = len(re.findall(r'batch\["speaker_id"\]\s*=[^=]', src))
+reads = src.count('batch.get("speaker_id")')
+assert assigns == 2 and reads == 3 and not re.search(r'batch\["speaker_id"\](?!\s*=[^=])', src), (assigns, reads)
+'''),
+    ("code", r'''
 # 5. Fine-tune. Resumes from the newest checkpoint-* in OUT.
 OUT = f"{PERSIST}/santali_voice_run"
 cfg = {
