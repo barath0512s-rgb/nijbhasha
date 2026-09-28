@@ -3012,7 +3012,9 @@ function orfRender(){
   const attempted = r.words.filter(w => w.status !== "not_reached").length;
   const wcpm = r.seconds ? Math.round(correct / (r.seconds / 60) * 10) / 10 : null;
   const band = r.nipun ? (r.grade === "2" ? wcpm >= 45 : wcpm >= 60) : null;
-  $("#orfText").innerHTML = r.words.map((w, i) => `<span class="orf-w ${w.status}" data-i="${i}" title="${w.heard || ""}">${w.word}</span>`).join(" ");
+  // w.heard is speech-recognition output: escaped before it goes into the markup
+  const h = x => String(x == null ? "" : x).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  $("#orfText").innerHTML = r.words.map((w, i) => `<span class="orf-w ${h(w.status)}" data-i="${i}" title="${h(w.heard)}">${h(w.word)}</span>`).join(" ");
   $("#orfOut").innerHTML = `<p><b>${num(wcpm)}</b> ${t("orf_wcpm")} · ${num(correct)}/${num(attempted)} ${t("orf_right")} · ${num(r.seconds)} ${t("t1_sec")}</p>` +
     (r.nipun ? `<p>${r.nipun.lakshya}: “${r.nipun.goal}” — ${band ? "✅" : "⏳"}</p>` : "") +
     `<p class="deck-tag">${t("orf_tap")}</p>`;
