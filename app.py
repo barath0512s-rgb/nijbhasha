@@ -20,6 +20,7 @@ from education_glossary import lookup_hi_to_sat, lookup_sat_to_hi, lookup_word_h
 from lesson_engine import LessonSession, get_all_lessons, get_lesson
 from pipeline import TRANSLATION_CACHE, TTSError, VaaniSetuPipeline
 from nipun import lakshya
+from reading_guide import reading_guide
 from worksheet import generate_worksheet
 
 # Only static/ is public. The project root used to be the static folder, which
@@ -329,6 +330,8 @@ def _translation_json(r, audio_url, tts_error, latency, rid=None, tts_engine=Non
         # verified sentence (nmt_guard.py).
         "needs_review":    bool(r.get("needs_review")),
         "nearest_verified": r.get("nearest_verified"),
+        # Santali written in Devanagari, so the teacher can read it aloud (reading_guide.py)
+        "reading_guide":   reading_guide(r["text"]),
     }
 
 
@@ -428,7 +431,8 @@ def translate_audio_stream():
                               "source": r["source"], "audio_url": audio_url, "tts_error": tts_error,
                               "tts_engine": tts_engine, "ms": round((c - t0) * 1000),
                               "needs_review": bool(r.get("needs_review")),
-                              "nearest_verified": _nearest(r, part, direction)},
+                              "nearest_verified": _nearest(r, part, direction),
+                              "reading_guide": reading_guide(r["text"])},
                              ensure_ascii=False) + "\n"
         whole = " ".join(outs)
         lat = {"asr": round(t1 - t0, 3), "nmt": round(nmt_s, 3), "tts": round(tts_s, 3),
@@ -945,6 +949,65 @@ def flashcards_pdf():
                       "lakshya_ids": meta["lakshya_ids"], "cards": cards}, buf)
     buf.seek(0)
     return send_file(buf, mimetype="application/pdf", download_name=f"{config.APP_NAME}_{topic}_Flashcards.pdf")
+
+
+@app.route("/corpus/record", methods=["POST"])
+def corpus_record():
+    """Community voice corpus (corpus.py): multipart audio, text, lang (sat|unr|hoc),
+    adult=1 (required), share=1|0. Adults only; stays on this laptop."""
+    import corpus
+    f = request.files.get("audio")
+    if f is None:
+        return jsonify({"error": "No audio"}), 400
+    ext = (f.filename or "").rsplit(".", 1)[-1] if "." in (f.filename or "") else "webm"
+    try:
+        rec = corpus.add(f.read(), ext, request.form.get("text"), request.form.get("lang"),
+                         request.form.get("adult") == "1", request.form.get("share") == "1")
+    except corpus.CorpusError as e:
+        return jsonify({"error": str(e)}), 400
+    return jsonify({"saved": rec["id"], **corpus.summary()})
+
+
+@app.route("/corpus/summary")
+def corpus_summary():
+    import corpus
+    return jsonify(corpus.summary())
+
+
+@app.route("/corpus/export")
+def corpus_export():
+    """The shareable recordings and their manifest, as a zip (a manual, deliberate step).
+    Only from the laptop itself: a device on the classroom Wi-Fi cannot download voices."""
+    import corpus
+    if request.remote_addr not in ("127.0.0.1", "::1"):
+        return jsonify({"error": "Export only from the laptop hub itself"}), 403
+    return send_file(io.BytesIO(corpus.export_zip()), mimetype="application/zip",
+                     download_name=f"{config.APP_NAME}_voice_corpus.zip")
+
+
+@app.route("/lesson_plan")
+def lesson_plan_pdf():
+    """The teacher's lesson plan with a pronunciation guide (lesson_plan.py):
+    GET /lesson_plan?grade=2&topic=addition."""
+    grade, topic = request.args.get("grade", ""), request.args.get("topic", "")
+    meta = next((m for m in get_all_lessons() if m["grade"] == str(grade) and m["topic"] == topic), None)
+    if meta is None:
+        return jsonify({"error": "No lesson matches that grade and topic"}), 404
+    from lesson_plan import build as build_plan
+    lesson = get_lesson(meta["grade"], meta["topic"])
+
+    def santali_of(hi):
+        # An imported lesson stores its Santali with each line; otherwise the translation
+        # layers answer (teacher correction, glossary, cache, model) with the round-trip check.
+        st = next((s for s in lesson.get("steps", []) if s.get("hindi") == hi and s.get("santali")), None)
+        if st:
+            return {"text": st["santali"], "source": st.get("source", "model"),
+                    "needs_review": bool(st.get("needs_review"))}
+        return pl.translate(hi, "hi-to-sat", "lesson_script", roundtrip=config.ROUNDTRIP_CHECK)
+    buf = io.BytesIO()
+    build_plan(lesson, meta["grade"], meta["topic"], santali_of, buf)
+    buf.seek(0)
+    return send_file(buf, mimetype="application/pdf", download_name=f"{config.APP_NAME}_{topic}_LessonPlan.pdf")
 
 
 def _worksheet_v2(sess):

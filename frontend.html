@@ -251,6 +251,8 @@ p{margin:0}
 .panel.a .text{font-family:var(--deva)}
 .panel.b .text{font-family:var(--olck);font-size:19px}
 .panel .foot{margin-top:11px;font-size:13px;color:var(--ink-2);display:flex;gap:7px;align-items:center;font-weight:600}
+.panel .guide{margin-top:9px;font-size:15px;color:var(--ink-2);line-height:1.5}
+.panel .guide b{font-weight:700;margin-right:6px}
 
 .swap-wrap{display:grid;place-items:center}
 .swap{
@@ -1014,6 +1016,7 @@ input:focus,textarea:focus,select:focus{
         </span>
       </div>
       <div class="text" id="sa" contenteditable="true" role="textbox" data-tt="ph_sa" data-ph="अनुवाद यहाँ आएगा" aria-label="ᱥᱟᱱᱛᱟᱲᱤ"></div>
+      <p class="guide" id="guideBox" hidden><b data-t="guide_lbl">पढ़ने में मदद (देवनागरी)</b> <span id="guideText" lang="hi"></span></p>
       <p class="foot"><span class="e">🔊</span> <span id="voiceNote" data-t="pan_voice">आधे सेकंड में बोलकर सुनाएगा</span></p>
     </div>
   </div>
@@ -1139,6 +1142,7 @@ input:focus,textarea:focus,select:focus{
     <button class="btn paper" id="shuffleBtn"><span class="e">🔀</span> <span data-t="fc_shuffle">बदलिए</span></button>
     <button class="btn paper" id="flipAllBtn"><span class="e">🔄</span> <span data-t="fc_flipall">सब पलटिए</span></button>
     <button class="btn paper" id="cardsPdfBtn"><span class="e">🖨️</span> <span data-t="fc_pdf">छापने के लिए</span></button>
+    <button class="btn paper" id="planPdfBtn"><span class="e">🗒️</span> <span data-t="fc_plan">पाठ योजना (शिक्षक)</span></button>
   </div>
   <p class="deck-tag" id="deckTag"></p>
   <div class="deck" id="deck"></div>
@@ -1263,6 +1267,20 @@ input:focus,textarea:focus,select:focus{
           <button class="btn" id="pvTr" hidden><span class="e">🔁</span> <span data-t="pv_tr">हिंदी → मुंडारी</span></button>
           <button class="btn" id="pvGo"><span class="e">🔊</span> <span data-t="pv_go">सुनें</span></button>
         </div>
+      </div>
+    </div>
+
+    <div class="slab item" id="corpusSlab" hidden>
+      <button class="open-btn" aria-expanded="false"><span class="e">🎙️</span><b data-t="cp_title">आवाज़ संग्रह (केवल वयस्क)</b><span class="sign">+</span></button>
+      <div class="body">
+        <p class="deck-tag" data-t="cp_sub">समुदाय का कोई वयस्क वक्ता अपनी भाषा में एक पंक्ति पढ़े। रिकॉर्डिंग इसी लैपटॉप पर रहती है, नाम नहीं। बच्चों की आवाज़ कभी नहीं।</p>
+        <div class="srow">
+          <select id="cpLang" aria-label="language"><option value="sat">ᱥᱟᱱᱛᱟᱲᱤ (Santali)</option><option value="unr">मुंडारी (Mundari)</option><option value="hoc">हो (Ho)</option></select>
+          <input type="text" id="cpText" autocomplete="off" aria-label="line">
+        </div>
+        <label class="srow"><input type="checkbox" id="cpAdult"> <span data-t="cp_adult">पढ़ने वाला वयस्क है और रिकॉर्डिंग के लिए सहमत है</span></label>
+        <label class="srow"><input type="checkbox" id="cpShare"> <span data-t="cp_share">शोध के लिए साझा करने की सहमति भी है (बिना नाम)</span></label>
+        <div class="srow"><button class="btn" id="cpRec" disabled><span class="e">⏺️</span> <span data-t="cp_rec">रिकॉर्ड / रोकें</span></button><small id="cpCount"></small></div>
       </div>
     </div>
 
@@ -1403,6 +1421,16 @@ hi: {
   se_sync_add:"मिलाएँ", se_sync_done:"फ़ाइल बनी: {n} सुधार", se_sync_merged:"मिलाए: {a} · टकराव: {c}", se_sync_bad:"फ़ाइल नहीं मिलाई",
   m_blocked:"एक बार दबाकर आवाज़ चालू कीजिए", m_no_voice:"इस पंक्ति की आवाज़ नहीं बन पाई। अनुवाद ऊपर लिखा है।",
   src_glossary:"✅ सत्यापित शब्दकोश", src_teacher:"🧑‍🏫 शिक्षक द्वारा सुधारा", src_cached:"⚡ पहले से तैयार", src_model:"🤖 मशीन अनुवाद", src_wordlist:"📝 शब्द सूची", src_pending:"समीक्षा बाकी", src_review:"⚠️ मूल वक्ता से जाँचें",
+  guide_lbl:"पढ़ने में मदद (देवनागरी)",
+  fc_plan:"पाठ योजना (शिक्षक)", m_plan_hub:"पाठ योजना अभी सिर्फ़ लैपटॉप हब पर बनती है",
+  cp_title:"आवाज़ संग्रह (केवल वयस्क)",
+  cp_sub:"समुदाय का कोई वयस्क वक्ता अपनी भाषा में एक पंक्ति पढ़े। रिकॉर्डिंग इसी लैपटॉप पर रहती है, नाम नहीं। बच्चों की आवाज़ कभी नहीं।",
+  cp_adult:"पढ़ने वाला वयस्क है और रिकॉर्डिंग के लिए सहमत है",
+  cp_share:"शोध के लिए साझा करने की सहमति भी है (बिना नाम)",
+  cp_rec:"रिकॉर्ड / रोकें", cp_count:"अब तक की रिकॉर्डिंग", cp_saved:"रिकॉर्डिंग इस लैपटॉप पर सहेजी गई",
+  tier_A:"A: लोगों द्वारा लिखा (शब्दकोश या शिक्षक का सुधार); मूल वक्ता की समीक्षा बाकी",
+  tier_B:"B: मशीन अनुवाद, कोई चेतावनी नहीं",
+  tier_C:"C: मशीन अनुवाद पर संदेह: मूल वक्ता से जाँचें",
   m_review:"यह अनुवाद भरोसेमंद नहीं: मूल वक्ता से जाँचें", m_nearest:"सबसे पास का सत्यापित वाक्य", ans_pending:"⏳ उत्तरों की समीक्षा बाकी",
   m_fix_reused:"आपका सुधार इस वाक्य के लिए दोबारा इस्तेमाल होगा", tip_ans_mic:"बोलकर जवाब", m_ans_heard:"सुना",
   t1_note_typed:"लिखी पंक्ति, सुनना (ASR) नहीं हुआ", t1_note_cache:"पहले से तैयार (कैश से)",
@@ -1557,6 +1585,16 @@ en: {
   se_sync_add:"Merge", se_sync_done:"File made: {n} corrections", se_sync_merged:"Merged: {a} · conflicts: {c}", se_sync_bad:"File not merged",
   m_blocked:"Press once to allow sound", m_no_voice:"The voice for this line could not be made. The translation is shown above.",
   src_glossary:"✅ Verified glossary", src_teacher:"🧑‍🏫 Teacher-verified", src_cached:"⚡ Cached", src_model:"🤖 Model", src_wordlist:"📝 Word list", src_pending:"review pending", src_review:"⚠️ Check with a native speaker",
+  guide_lbl:"Reading guide (Devanagari)",
+  fc_plan:"Lesson plan (teacher)", m_plan_hub:"Lesson plans are made on the laptop hub only (for now)",
+  cp_title:"Voice corpus (adults only)",
+  cp_sub:"A community member (adult) reads a line in their language. The recording stays on this laptop, with no name. Never children's voices.",
+  cp_adult:"The reader is an adult and agrees to be recorded",
+  cp_share:"They also agree to share it for research (no name)",
+  cp_rec:"Record / stop", cp_count:"Recordings so far", cp_saved:"Recording saved on this laptop",
+  tier_A:"A: written by people (glossary or a teacher's correction); native review pending",
+  tier_B:"B: machine translation, no warning raised",
+  tier_C:"C: machine translation in doubt: check with a native speaker",
   m_review:"This translation is not reliable: check with a native speaker", m_nearest:"Nearest verified sentence", ans_pending:"⏳ answers: review pending",
   m_fix_reused:"Your correction will be reused for this sentence", tip_ans_mic:"Answer by voice", m_ans_heard:"Heard",
   t1_note_typed:"Typed line, no ASR", t1_note_cache:"From cache",
@@ -1766,14 +1804,25 @@ function say(msg, emoji){
 // silence: when speech fails, audio_url is null and tts_error says why.
 // Label the translation with the layer that produced it. No confidence number
 // is shown: the model's score does not tell good output from bad.
+// A tier letter goes with the source: A = written by people (glossary or a teacher's
+// correction), B = model output with no warning, C = model output in doubt. Not a score.
+const TIER = {teacher:"A", glossary:"A", model:"B", cached:"B", review:"C"};
 function badge(source){
   const on = $(S.dir === "hi-to-sat" ? "#srcSa" : "#srcHi");
   const off = $(S.dir === "hi-to-sat" ? "#srcHi" : "#srcSa");
   off.hidden = true;
   if (!source){ on.hidden = true; return; }
+  const tier = TIER[source];
   on.dataset.src = source;
-  on.textContent = t("src_" + source);
+  on.textContent = (tier ? tier + " · " : "") + t("src_" + source);
+  on.title = tier ? t("tier_" + tier) : "";
   on.hidden = false;
+}
+// The Santali in Devanagari, for the teacher to read aloud (reading_guide.py on the hub,
+// Api.readingGuide on the tablet). Hidden when there is none (Hindi output).
+function guide(text){
+  $("#guideText").textContent = text || "";
+  $("#guideBox").hidden = !text;
 }
 
 // A reply the loop guard flagged (nmt_guard.py) is not presented as a translation:
@@ -1789,6 +1838,7 @@ function flagged(r){
 }
 function voice(r){
   badge(r.source);
+  guide(r.reading_guide);
   S.audioUrl = r.audio_url || null;
   if (flagged(r)) return;
   if (r.tts_error){ console.warn(r.tts_error); say(t("m_no_voice"), "🔇"); return; }
@@ -2010,6 +2060,7 @@ async function translate(){
   btn.disabled = true;
   btn.innerHTML = `<span class="e spin">⏳</span> <span>${t("act_translating")}</span>`;
   dst.classList.add("pending");
+  guide(null);
   try {
     const r = await Api.translateText(text, S.dir, S.mode, S.sid);
     dst.classList.remove("pending");
@@ -2250,7 +2301,8 @@ async function mic(dir){
     src.classList.add("pending"); dst.classList.add("pending");
     say(t("m_listening"), "👂");
     const t0 = S.tStop || performance.now();
-    let recognized = "", outs = [], tResp = null, nChunks = 0, notLesson = false;
+    let recognized = "", outs = [], guides = [], tResp = null, nChunks = 0, notLesson = false;
+    guide(null);
     try {
       await Api.translateAudioStream(blob, dir, S.mode, S.sid, ev => {
         if (ev.type === "asr"){
@@ -2270,6 +2322,8 @@ async function mic(dir){
           outs.push(ev.translated_text || "");
           dst.classList.remove("pending");
           dst.textContent = outs.join(" ");
+          if (ev.reading_guide) guides.push(ev.reading_guide);
+          guide(guides.join(" "));
           badge(ev.source);
           if (flagged(ev)){ Q.total = Math.max(0, Q.total - 1); if (ev.audio_url) S.audioUrl = ev.audio_url; }
           else if (ev.tts_error){ console.warn(ev.tts_error); say(t("m_no_voice"), "🔇"); }
@@ -2478,6 +2532,24 @@ $("#cardsPdfBtn").onclick = async () => {
     setTimeout(() => URL.revokeObjectURL(url), 4000);
     say(t("m_sheet"), "📄");
   } catch(e){ fail(e); }
+};
+// The teacher's lesson plan for this deck's lesson: every line in Hindi, Santali and a
+// Devanagari reading guide, with tiers and accepted answers (GET /lesson_plan, laptop hub).
+$("#planPdfBtn").onclick = async () => {
+  const deck = S.decks && S.decks[S.deck];
+  if (!deck) return;
+  try {
+    const r = await api("/lesson_plan?grade=" + encodeURIComponent(deck.grade) + "&topic=" + encodeURIComponent(deck.topic));
+    const url = URL.createObjectURL(await r.blob());
+    const a = document.createElement("a");
+    a.href = url; a.download = (S.appName || T.en.brand) + "_" + deck.topic + "_LessonPlan.pdf";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    say(t("m_sheet"), "📄");
+  } catch(e){
+    if (/404|not found/i.test(e.message)) say(t("m_plan_hub"), "💻");   // the tablet has no lesson plans yet
+    else fail(e);
+  }
 };
 $("#sheetBtn").onclick = e => worksheet(e.currentTarget);
 $("#sheetPdf").onclick = e => worksheet(e.currentTarget);
@@ -2973,6 +3045,44 @@ $("#orfRec").onclick = async () => {
   orfRec.start();
 };
 orfLoad();
+// Community voice corpus (corpus.py, laptop hub only): an adult reads a line; it stays on the laptop.
+let cpRec = null;
+async function cpLoad(){
+  try {
+    const d = await getJSON("/corpus/summary");
+    $("#corpusSlab").hidden = false;
+    $("#cpCount").textContent = t("cp_count") + ": " + num(d.total);
+  } catch(e){ $("#corpusSlab").hidden = true; }      // the tablet has no corpus
+}
+function cpReady(){ $("#cpRec").disabled = !($("#cpAdult").checked && $("#cpText").value.trim()); }
+$("#cpAdult").onchange = cpReady;
+$("#cpText").oninput = cpReady;
+$("#cpText").onfocus = () => { if (!$("#cpText").value.trim()) { $("#cpText").value = $("#sa").textContent.trim(); cpReady(); } };
+$("#cpRec").onclick = async () => {
+  if (cpRec){ cpRec.stop(); return; }
+  if (!micReady()){ say(t("m_mic_none"), "🚫"); return; }
+  let stream; try { stream = await micStream(); } catch(e){ say(t("m_mic_no"), "🚫"); return; }
+  const type = pickMime(), chunks = [];
+  cpRec = newRecorder(stream, type);
+  $("#cpRec").classList.add("live");
+  cpRec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  cpRec.onstop = async () => {
+    endStream(stream); $("#cpRec").classList.remove("live"); cpRec = null;
+    const ext = (type || "audio/webm").indexOf("wav") >= 0 ? "wav" : (type || "").indexOf("mp4") >= 0 ? "mp4"
+              : (type || "").indexOf("ogg") >= 0 ? "ogg" : "webm";
+    const fd = new FormData();
+    fd.append("audio", new Blob(chunks, {type: type || "audio/webm"}), "line." + ext);
+    fd.append("text", $("#cpText").value.trim()); fd.append("lang", $("#cpLang").value);
+    fd.append("adult", $("#cpAdult").checked ? "1" : "0"); fd.append("share", $("#cpShare").checked ? "1" : "0");
+    try {
+      const r = await api("/corpus/record", {method:"POST", body:fd}).then(x => x.json());
+      $("#cpCount").textContent = t("cp_count") + ": " + num(r.total);
+      say(t("cp_saved"), "🎙️");
+    } catch(e){ say(e.message || t("m_err"), "⚠️"); }
+  };
+  cpRec.start();
+};
+cpLoad();
 // C2: a page photo -> text in the import box (laptop hub only; the teacher checks it)
 if (window.VaaniPack) $("#impPhotoRow").hidden = true;
 $("#impPhoto").onchange = async e => {

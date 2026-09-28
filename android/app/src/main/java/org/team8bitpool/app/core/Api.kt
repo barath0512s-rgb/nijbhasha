@@ -245,6 +245,7 @@ class Api(
             .put("needs_review", teacher == null && (entry?.optBoolean("needs_review") == true || free?.needsReview == true))
             .put("nearest_verified", JSONObject.NULL).put("match", match)
             .put("review_status", entry?.optString("review_status") ?: JSONObject.NULL)
+            .put("reading_guide", readingGuide(out))
         if (out == null) chunk.put("code", "not_a_lesson_line")
         if (out != null) synchronized(sessions) { sessions[parts["session_id"]?.text() ?: ""] }?.let {
             taught(it); synchronized(it) { it.recordTranslation(if (direction == "hi-to-sat") recognized else out,
@@ -385,8 +386,13 @@ class Api(
             .put("tts_engine", engine)
             .put("latency", lat).put("english_pivot", "").put("confidence", JSONObject.NULL)
             // A3: a pack line the round-trip check flagged (a teacher's correction clears it)
-            .put("needs_review", source != "teacher" && (fromPack?.optBoolean("needs_review") == true || deviceModel?.needsReview == true)))
+            .put("needs_review", source != "teacher" && (fromPack?.optBoolean("needs_review") == true || deviceModel?.needsReview == true))
+            .put("reading_guide", readingGuide(out)))
     }
+
+    /** Santali written in Devanagari so the teacher can read it aloud (the hub's reading_guide.py). */
+    private fun readingGuide(text: String?): Any =
+        if (text != null && OlChiki.hasOlChiki(text)) OlChiki.toDevanagari(text) else JSONObject.NULL
 
     private fun speak(pack: Pack?, d: JSONObject): Resp {
         val text = d.optString("text", "").trim()
