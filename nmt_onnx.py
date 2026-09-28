@@ -21,7 +21,8 @@ ONNX_DIR = config.MODELS_DIR / "indictrans2-onnx"
 
 
 class OnnxNMT:
-    def __init__(self, tokenizer, processor, int8=True, threads=4, onnx_dir=ONNX_DIR, variant=None, guard=None):
+    def __init__(self, tokenizer, processor, int8=True, threads=4, onnx_dir=ONNX_DIR, variant=None, guard=None,
+                 no_repeat=None, max_new_tokens=None):
         import onnxruntime as ort
         so = ort.SessionOptions()
         so.intra_op_num_threads = threads
@@ -40,13 +41,18 @@ class OnnxNMT:
         # int8 falls into loops of word variants: guard it (nmt_guard.py). fp32 is left
         # exactly as PyTorch decodes it (golden test: identical token ids).
         self.guard = (bool(int8) and config.NMT_INT8_GUARD) if guard is None else guard
+        # Per-engine decoding (the Mundari preview decodes as its notebook evaluated it):
+        # no_repeat None = config.NMT_NO_REPEAT_NGRAM, 0 = off; max_new_tokens None = the app's
+        # caps below, else a function of the input length in tokens.
+        self.no_repeat = config.NMT_NO_REPEAT_NGRAM if no_repeat is None else no_repeat
+        self.max_new_tokens = max_new_tokens
         self.guard_fired = 0
         self.last_cut = False               # set by each translate_scored call (under the lock)
 
     @staticmethod
     def _banned(tokens, n):
         """Tokens that would repeat an n-gram already generated (HF no_repeat_ngram_size)."""
-        if len(tokens) < n:
+        if n <= 0 or len(tokens) < n:
             return set()
         prefix = tuple(tokens[-(n - 1):])
         return {tokens[i + n - 1] for i in range(len(tokens) - n + 1) if tuple(tokens[i:i + n - 1]) == prefix}
@@ -61,7 +67,7 @@ class OnnxNMT:
         seq = [self.start]
         for _ in range(max_new_tokens):
             scores = logits[0, -1].astype(np.float32)
-            for b in self._banned(seq, config.NMT_NO_REPEAT_NGRAM):
+            for b in self._banned(seq, self.no_repeat):
                 scores[b] = -np.inf
             nxt = int(scores.argmax())
             if logps is not None:
@@ -106,6 +112,8 @@ class OnnxNMT:
                     return nmt_guard.first_loop(words) is not None
             else:
                 limit = min(config.NMT_MAX_TOKENS, config.NMT_LIMIT_FACTOR * ids.shape[1] + config.NMT_LIMIT_MARGIN)
+            if self.max_new_tokens is not None:
+                limit = self.max_new_tokens(ids.shape[1])
             seq = self.generate_ids(ids, mask, limit, logps, stop)
             dec = self.tok.batch_decode([seq], skip_special_tokens=True, clean_up_tokenization_spaces=True)
             score = round(float(np.exp(np.mean(logps))), 3) if logps else None

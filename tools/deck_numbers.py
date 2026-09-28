@@ -376,17 +376,22 @@ def uplift():
         import mundari_nmt
         print(f"\nMundari translation, preview (C3): {mundari_nmt.LABEL}; "
               "not comparable with the Santali IN22-Conv or FLORES numbers (different test sets)")
+        hub = ROOT / "eval" / "results" / "mundari_hub_int8.json"
+        if hub.exists():
+            h = json.loads(hub.read_text(encoding="utf-8"))
+            for d in ("hi->unr", "unr->hi"):
+                out(f"{d} chrF++ / BLEU (headline: hub int8 ONNX, after nukta fix)",
+                    f"{h[d]['chrF++']:.2f} / {h[d]['BLEU']:.2f}", "eval/results/mundari_hub_int8.json")
+        else:
+            out("headline: hub int8 ONNX, after nukta fix", NM, "run eval/mundari_hub_eval.py")
         for f in mv:
             r = json.loads(f.read_text(encoding="utf-8"))
             run = f.stem.rsplit("_", 1)[1]
             fixed = "normalisation" in r            # written only by the notebook with the nukta clean-up
-            tag = f"{run} run, {'after' if fixed else 'before'} nukta fix"
+            tag = f"secondary: {run} run, notebook PyTorch, {'after' if fixed else 'before'} nukta fix"
             for d in ("hi->unr", "unr->hi"):
                 out(f"{d} chrF++ / BLEU ({tag})", f"{r[d]['chrF++']:.2f} / {r[d]['BLEU']:.2f}",
                     str(f.relative_to(ROOT)).replace("\\", "/"))
-        if not any("normalisation" in json.loads(f.read_text(encoding="utf-8")) for f in mv):
-            out("final scores, after the nukta fix", NM, "no run of the fixed notebook yet")
-        out("the hub's int8 ONNX engine, scored", NM, "the scores above are the notebook's PyTorch model")
     vr = RESULTS / "voice_rule_finale.json"
     if vr.exists():
         r = json.loads(vr.read_text(encoding="utf-8"))

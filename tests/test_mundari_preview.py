@@ -73,3 +73,19 @@ def test_route_translates_both_ways(client, monkeypatch):
         assert d["maturity"] == "preview" and d["needs_review"] is True
     unr = [l for l in client.get("/languages").get_json()["languages"] if l["code"] == "unr"][0]
     assert unr["stages"]["nmt"]["maturity"] == "preview"
+
+
+def test_no_repeat_can_be_switched_off_per_engine():
+    import nmt_onnx
+    assert nmt_onnx.OnnxNMT._banned([5, 6, 5, 6, 5], 0) == set()          # the Mundari engine: off
+    assert nmt_onnx.OnnxNMT._banned([5, 6, 5, 6, 5], 3) == {6}            # Santali default: unchanged
+
+
+@pytest.mark.skipif(not list((config.BASE_DIR / "data" / "mmloso").glob("*.csv")) if (config.BASE_DIR / "data" / "mmloso").exists() else True,
+                    reason="MMLoSo training file not in data/mmloso/ (git-ignored)")
+def test_the_rebuilt_split_matches_the_notebook():
+    import sys
+    sys.path.insert(0, str(config.BASE_DIR / "eval"))
+    import mundari_split
+    r = mundari_split.check()
+    assert r["held_out"] == 1021 and r["hindi_not_in_leakage_set"] == 0 and r["mundari_not_in_leakage_set"] == 0, r

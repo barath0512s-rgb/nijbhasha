@@ -442,9 +442,9 @@
   status: "TRUE"
   evidence: tests/test_mundari_preview.py
 - id: mundari_hub_int8_scored
-  text: "chrF++ / BLEU of the hub's int8 Mundari engine"
-  status: "NOT MEASURED"
-  evidence: STATUS.md
+  text: "Mundari preview translation, hub int8 ONNX, after nukta fix, held-out 5% of the MMLoSo 2025 training file, n=1,021 pairs, greedy, Mundari preview, not reviewed by a native speaker: hi→unr chrF++ 30.92, BLEU 7.25; unr→hi chrF++ 35.97, BLEU 14.80; not comparable with the Santali IN22-Conv or FLORES numbers (different test sets)"
+  status: "TRUE"
+  evidence: eval/results/mundari_hub_int8.json
 - id: mundari_preview_v5
   text: "Mundari preview translation, v5 run, before nukta fix, held-out 5% of the MMLoSo 2025 training file, n=1,021 pairs, greedy, Mundari preview, not reviewed by a native speaker: hi→unr chrF++ 29.13, BLEU 6.06; unr→hi chrF++ 34.64, BLEU 11.86; not comparable with the Santali IN22-Conv or FLORES numbers (different test sets)"
   status: "TRUE"
@@ -453,10 +453,6 @@
   text: "Mundari preview translation, v6 run (retrained), before nukta fix, held-out 5% of the MMLoSo 2025 training file, n=1,021 pairs, greedy, Mundari preview, not reviewed by a native speaker: hi→unr chrF++ 29.01, BLEU 5.97; unr→hi chrF++ 34.64, BLEU 11.86; not comparable with the Santali IN22-Conv or FLORES numbers (different test sets)"
   status: "TRUE"
   evidence: eval/results/mundari_eval_v6.json
-- id: mundari_preview_final
-  text: "Mundari preview translation, final scores after the nukta fix (held-out 5% of the MMLoSo 2025 training file, n=1,021 pairs, greedy, Mundari preview, not reviewed by a native speaker)"
-  status: "NOT MEASURED"
-  evidence: notebooks/mundari_lora.ipynb
 - id: hub_precomposed_nukta_input
   text: "The laptop hub passes Hindi precomposed nukta letters (e.g. ड़ U+095C) to the translation model intact"
   status: "FALSE"

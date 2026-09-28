@@ -6,7 +6,10 @@ direction under config.MUNDARI_NMT_DIR (tools/install_mundari_nmt.py):
     hi_unr/  Hindi -> Mundari      unr_hi/  Mundari -> Hindi
 Run by nmt_onnx.OnnxNMT with the base model's tokenizer (LoRA leaves it unchanged)
 and the surrogate tag brx_Deva for Mundari (IndicTrans2 has no Mundari tag), as in
-training. The adapters learned the literal nukta escape from the pinned IndicNLP
+training, and decoded with the notebook's settings, not the Santali engine's (no
+no-repeat 3-gram, no int8 loop guard, no 128-token cap). The remaining differences
+from the notebook's scores: int8 instead of fp32, and one sentence at a time instead
+of padded batches of 32. The adapters learned the literal nukta escape from the pinned IndicNLP
 normaliser, so every output goes through textnorm.fix_nukta_escape.
 
 Mundari is written in Devanagari here (as in MMLoSo 2025). Nothing is reviewed by
@@ -44,7 +47,10 @@ def _engine(direction):
             tok = AutoTokenizer.from_pretrained(str(config.NMT_DIR), trust_remote_code=True)
             _engines[direction] = nmt_onnx.OnnxNMT(
                 tok, IndicProcessor(inference=True), int8=True, threads=config.NMT_THREADS,
-                onnx_dir=config.MUNDARI_NMT_DIR / DIRECTIONS[direction][0])
+                onnx_dir=config.MUNDARI_NMT_DIR / DIRECTIONS[direction][0],
+                # decode as the notebook evaluated it (notebooks/mundari_lora.ipynb, translate()):
+                # greedy, no no-repeat n-gram, no loop guard, up to 2 x input tokens + 10 new tokens
+                guard=False, no_repeat=0, max_new_tokens=lambda n: 2 * n + 10)
         return _engines[direction]
 
 
