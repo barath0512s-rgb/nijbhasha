@@ -351,6 +351,26 @@ def uplift():
         out("peak PSS, app + WebView", f"{p['app'] / 1024:.0f} + {p['renderer'] / 1024:.0f} MB", src)
         a = v["answers"]
         out("spoken answers graded as expected", f"{sum((x['signal'] == 'green') == (x['expect'] == 'green') for x in a)} of {len(a)}", src)
+    for f in sorted(glob.glob(str(RESULTS / "*_nmt.json"))):
+        r = json.loads(Path(f).read_text(encoding="utf-8"))
+        src = str(Path(f).with_suffix(".md").relative_to(ROOT)).replace("\\", "/")
+        d, name = r["device"], Path(f).name
+        dev = ("Realme Pad Mini, 4 GB, Android 11" if name.startswith("realme-pad-mini")
+               else "emulator, 2 GB, Android 9" if name.startswith("emulator-2gb-android9")
+               else f"{d['brand']} {d['model']}, Android {d['android']}")
+        print(f"\nTyped translation on the device (A5): {dev}, {d['abi']}")
+        ms = sorted(r["nmt_ms"])
+        k = lambda q: ms[int((len(ms) - 1) * q)]
+        out("per sentence, p50 / p90 (nearest rank)", f"{k(.5) / 1000:.2f} / {k(.9) / 1000:.2f} s (n={len(ms)})", src)
+        out("chrF++ device / laptop int8, same sentences", f"{r['chrf_device']:.2f} / {r['chrf_laptop']:.2f}", src)
+        out("identical to the laptop: golden / IN22", f"{r['golden_same']} of {r['golden_n']} / {r['in22_same']} of {r['in22_n']}", src)
+    for f in sorted(glob.glob(str(RESULTS / "*_hub_mic.json"))):
+        r = json.loads(Path(f).read_text(encoding="utf-8"))
+        src = str(Path(f).with_suffix(".md").relative_to(ROOT)).replace("\\", "/")
+        print(f"\nHub mode microphone ({r['label']})")
+        for run in dict.fromkeys(x["run"] for x in r["rows"]):
+            xs = [x["client_total_ms"] / 1000 for x in r["rows"] if x["run"] == run]
+            out(f"end of speech to reply audio, {run}", ", ".join(f"{x:.2f}" for x in xs) + " s", src)
     mv = sorted((ROOT / "eval" / "results").glob("mundari_eval_v*.json"))
     if mv:
         import mundari_nmt

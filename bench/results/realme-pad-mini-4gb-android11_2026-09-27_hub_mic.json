@@ -1,0 +1,152 @@
+{
+ "label": "tablet browser via laptop hub, Wi-Fi",
+ "device": "Realme Pad Mini, 4 GB, Android 11 (Chrome), on the laptop's Mobile hotspot",
+ "hub": "laptop i7-12700H, app.py --https, CPU",
+ "utterance": "दो आम और तीन आम मिलाओ। कुल कितने हुए? उंगलियों पर गिनो।",
+ "rows": [
+  {
+   "ts": 1790501892.064427,
+   "direction": "hi-to-sat",
+   "input_type": "voice",
+   "source": "model",
+   "tts_engine": "piper",
+   "asr_ms": 1176.0,
+   "nmt_ms": 598.0,
+   "tts_ms": 2520.0,
+   "server_ms": 4294.0,
+   "network_ms": 425.89999999990687,
+   "client_total_ms": 4900.200000000186,
+   "model_versions": {
+    "asr": "e9b71b369c",
+    "nmt": "ffb7582b6d",
+    "nmt_beams": 1,
+    "nmt_engine": "onnx-fp32",
+    "tts_hindi": "hi_IN-pratham-medium",
+    "tts_santali": "hi_IN-pratham-medium",
+    "santali_script": "devanagari"
+   },
+   "time": "15:08:12",
+   "run": "first (possible background load)"
+  },
+  {
+   "ts": 1790501915.1295972,
+   "direction": "hi-to-sat",
+   "input_type": "voice",
+   "source": "glossary",
+   "tts_engine": "cache",
+   "asr_ms": 457.0,
+   "nmt_ms": 2.0,
+   "tts_ms": 12.0,
+   "server_ms": 470.0,
+   "network_ms": 93.6999999997206,
+   "client_total_ms": 833.3999999999069,
+   "model_versions": {
+    "asr": "e9b71b369c",
+    "nmt": "ffb7582b6d",
+    "nmt_beams": 1,
+    "nmt_engine": "onnx-fp32",
+    "tts_hindi": "hi_IN-pratham-medium",
+    "tts_santali": "hi_IN-pratham-medium",
+    "santali_script": "devanagari"
+   },
+   "time": "15:08:35",
+   "run": "first (possible background load)"
+  },
+  {
+   "ts": 1790501929.146858,
+   "direction": "hi-to-sat",
+   "input_type": "voice",
+   "source": "glossary",
+   "tts_engine": "cache",
+   "asr_ms": 368.0,
+   "nmt_ms": 2.0,
+   "tts_ms": 2.0,
+   "server_ms": 372.0,
+   "network_ms": 120.39999999990687,
+   "client_total_ms": 647.8000000002794,
+   "model_versions": {
+    "asr": "e9b71b369c",
+    "nmt": "ffb7582b6d",
+    "nmt_beams": 1,
+    "nmt_engine": "onnx-fp32",
+    "tts_hindi": "hi_IN-pratham-medium",
+    "tts_santali": "hi_IN-pratham-medium",
+    "santali_script": "devanagari"
+   },
+   "time": "15:08:49",
+   "run": "first (possible background load)"
+  },
+  {
+   "ts": 1790502294.5885732,
+   "direction": "hi-to-sat",
+   "input_type": "voice",
+   "source": "glossary",
+   "tts_engine": "cache",
+   "asr_ms": 1308.0,
+   "nmt_ms": 1.0,
+   "tts_ms": 3.0,
+   "server_ms": 1313.0,
+   "network_ms": 138.40000000037253,
+   "client_total_ms": 1710.6000000005588,
+   "model_versions": {
+    "asr": "e9b71b369c",
+    "nmt": "ffb7582b6d",
+    "nmt_beams": 1,
+    "nmt_engine": "onnx-fp32",
+    "tts_hindi": "hi_IN-pratham-medium",
+    "tts_santali": "hi_IN-pratham-medium",
+    "santali_script": "devanagari"
+   },
+   "time": "15:14:54",
+   "run": "clean (hub idle)"
+  },
+  {
+   "ts": 1790502314.9413064,
+   "direction": "hi-to-sat",
+   "input_type": "voice",
+   "source": "glossary",
+   "tts_engine": "cache",
+   "asr_ms": 666.0,
+   "nmt_ms": 3.0,
+   "tts_ms": 4.0,
+   "server_ms": 674.0,
+   "network_ms": 103.79999999981374,
+   "client_total_ms": 972.4000000003725,
+   "model_versions": {
+    "asr": "e9b71b369c",
+    "nmt": "ffb7582b6d",
+    "nmt_beams": 1,
+    "nmt_engine": "onnx-fp32",
+    "tts_hindi": "hi_IN-pratham-medium",
+    "tts_santali": "hi_IN-pratham-medium",
+    "santali_script": "devanagari"
+   },
+   "time": "15:15:14",
+   "run": "clean (hub idle)"
+  },
+  {
+   "ts": 1790502330.0468764,
+   "direction": "hi-to-sat",
+   "input_type": "voice",
+   "source": "glossary",
+   "tts_engine": "cache",
+   "asr_ms": 572.0,
+   "nmt_ms": 2.0,
+   "tts_ms": 2.0,
+   "server_ms": 576.0,
+   "network_ms": 127.5,
+   "client_total_ms": 869.7999999998137,
+   "model_versions": {
+    "asr": "e9b71b369c",
+    "nmt": "ffb7582b6d",
+    "nmt_beams": 1,
+    "nmt_engine": "onnx-fp32",
+    "tts_hindi": "hi_IN-pratham-medium",
+    "tts_santali": "hi_IN-pratham-medium",
+    "santali_script": "devanagari"
+   },
+   "time": "15:15:30",
+   "run": "clean (hub idle)"
+  }
+ ]
+}

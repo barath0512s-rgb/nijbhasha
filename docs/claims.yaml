@@ -378,9 +378,17 @@
   status: "NOT MEASURED"
   evidence: bench/results/lesson_match.md
 - id: a1_realme
-  text: "A1 on the Realme Pad Mini (4 GB, Android 11)"
+  text: "A1 on-device voice (spoken lesson lines, spoken answers) timed on the Realme Pad Mini (4 GB, Android 11)"
   status: "NOT MEASURED"
   evidence: STATUS.md
+- id: m1_realme
+  text: "Release app on the Realme Pad Mini (4 GB, Android 11) in airplane mode: signed content pack imported in 7.0 s; 24 of 24 contract cases; the page lists lesson lines and Translate shows Santali; native microphone works; peak PSS app + WebView 294 MB (both passes ran offline: the tablet was in airplane mode throughout)"
+  status: "TRUE"
+  evidence: bench/results/realme-pad-mini-4gb-android11_2026-09-27_m1.md
+- id: hub_mic_realme
+  text: "Hub mode, tablet browser via laptop hub, Wi-Fi (Realme Pad Mini Chrome, laptop hotspot): 3 of 3 spoken lesson lines worked end to end; end of speech to reply audio playing 1.71, 0.97, 0.87 s (hub idle; one speaker, one sentence). An earlier run of 3, with possible background load on the hub: 4.90, 0.83, 0.65 s (the 4.90 s attempt was not matched to the lesson line)"
+  status: "TRUE"
+  evidence: bench/results/realme-pad-mini-4gb-android11_2026-09-27_hub_mic.md
 - id: a2_worksheets
   text: "Worksheet v2 (count and write, match, fill in the blank, circle the answer, trace the numeral, answer key) and cut-out flashcards for every lesson; Ol Chiki and Lakshya IDs are extractable text"
   status: "TRUE"
@@ -478,9 +486,14 @@
   status: "NOT BUILT"
   evidence: STATUS.md
 - id: a5_realme_typed
-  text: "Typed translation on the Realme Pad Mini (4 GB, Android 11)"
-  status: "NOT MEASURED"
-  evidence: docs/device_session.md
+  text: "Typed translation on the Realme Pad Mini (4 GB, Android 11), airplane mode, 200 IN22-Conv sentences: chrF++ 29.00 (laptop int8 on the same sentences 28.75); p50 1.50 s, p90 2.86 s per sentence; first sentence 7.14 s (model load); peak PSS app 1172 MB + WebView 148 MB"
+  status: "TRUE"
+  evidence: bench/results/realme-pad-mini-4gb-android11_2026-09-27_nmt.md
+- id: a5_realme_identical
+  text: "On the Realme (ARM64) the tablet's translation is identical to the laptop's int8 output"
+  status: "FALSE"
+  evidence: bench/results/realme-pad-mini-4gb-android11_2026-09-27_nmt.md
+  note: "65 of 80 golden and 141 of 200 IN22-Conv sentences identical (x86 emulator: 80 of 80, 1502 of 1503); cause not verified"
 - id: a5_memory
   text: "Peak app PSS while translating on the 2 GB emulator (after the memory fix): 1197 MB, above the 900 MB guideline"
   status: "TRUE"
