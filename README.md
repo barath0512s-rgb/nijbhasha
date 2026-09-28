@@ -2,7 +2,7 @@
 
 *Formerly VaaniSetu (renamed on 26 Sep 2026 to avoid confusion with another team's project).*
 
-[![tests](https://github.com/barath0512s-rgb/sih-hackathon/actions/workflows/tests.yml/badge.svg)](https://github.com/barath0512s-rgb/sih-hackathon/actions/workflows/tests.yml)
+[![tests](https://github.com/barath0512s-rgb/nijbhasha/actions/workflows/tests.yml/badge.svg)](https://github.com/barath0512s-rgb/nijbhasha/actions/workflows/tests.yml)
 
 **An offline Hindi ↔ Santali teaching assistant for Grade 1–3 classrooms in Jharkhand.**
 The teacher speaks or types Hindi. The child hears Santali and can answer in

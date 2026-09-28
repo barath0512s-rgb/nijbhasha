@@ -51,7 +51,7 @@ Formerly VaaniSetu, renamed to avoid confusion with another team's project.
 | Changed | the page (title, brand in hi/sat/en), worksheet and flashcard PDFs (`config.APP_NAME_LOCAL`, download file names), Android launcher label (from `app_config.json`), README (with the "formerly VaaniSetu" note), docs, demo script, tool messages, launcher `run_vaanisetu.bat` → `run_nijbhasha.bat` (git mv) |
 | Unchanged on purpose | **Android package ID `org.team8bitpool.app`** (renaming it would break installs; it never carried the name); the database file `vaanisetu_feedback.db` (renaming would orphan stored corrections and lessons); the `vaanisetu_env` virtual environment and the internal class `VaaniSetuPipeline`; the hub CA already installed on devices (its subject still says VaaniSetu; remaking it would force a reinstall); `_archive/` and dated results files (records); STATUS quotes of the old deck (external file) |
 | No splash screen | The Android app has no separate splash; the name shows in the launcher and the title bar (both from `app_config.json`) |
-| GitHub repository | `barath0512s-rgb/sih-hackathon`: not renamed; waiting for your confirmation and the new name |
+| GitHub repository | Renamed on 27 Sep 2026 to **`barath0512s-rgb/nijbhasha`** (confirmed by the team); the old URL `barath0512s-rgb/sih-hackathon` redirects (HTTP 301). Remote, badge and links updated |
 | Re-check after the rename, 2 GB Android 9 emulator, release APK, new content pack | Title bar "Nijbhasha"; pack import 15.0 s; 24/24 online and 24/24 in airplane mode; page check yes / yes / yes; release mic through the page 112,690 bytes (about 3.5 s); peak PSS 182 MB (app 82 + renderer 100). The debug-build MicBridge capture returned 3.04 s of **silence** (RMS 0) this time: the emulator's host audio input gave no sound on this boot (earlier runs of the same code: RMS 0.0035-0.07); not a measurement of the app. Clip re-recorded: `docs/demo_assets/android_emulator.mp4` (7.7 MB) |
 
 ## FREEZE-2 (branch `android-wp4`, fast-forwarded to `main`)
@@ -258,7 +258,7 @@ dataset, adult speech) and 30 lesson lines. Numbers: `tools/deck_numbers.py`.
 
 | Item | Result | Evidence |
 |---|---|---|
-| Push | `main` fast-forwarded `1115712` → `51545c7` and pushed; tag `v0.9-submission` pushed. CI ("tests") passed on `main` and on the tag; the badge reads "passing" | https://github.com/barath0512s-rgb/sih-hackathon/actions |
+| Push | `main` fast-forwarded `1115712` → `51545c7` and pushed; tag `v0.9-submission` pushed. CI ("tests") passed on `main` and on the tag; the badge reads "passing" | https://github.com/barath0512s-rgb/nijbhasha/actions |
 | Repo description and topics | **NOT DONE**: needs a GitHub login (`gh` is not installed). The current description claims "<4s", which was never measured | — |
 | Hindi speech, public adult | 80 FLEURS test clips (CC BY 4.0, seeded). CTC (in use): WER 11.1%, CER 4.5%. RNN-T: WER 11.3%, CER 4.5%. CTC is 2.3× faster (907 vs 2081 ms median). **Decision: CTC stays for Hindi** | `bench/results/asr_decoding_public.md`, `.jsonl` |
 | Voice to voice, public adult speech | hi→sat median 2.95 s, p90 3.69 s, max 5.68 s; **38 of 79 over 3 s**. It grows with length: 0-11 words 2.67 s (0 of 4 over), 24+ words 3.48 s (6 of 7 over). Translation is the largest part (NMT median 1744 ms) | `bench/results/Dell-Inc-Dell-G15-5520_2026-09-25_public.{md,csv}` |

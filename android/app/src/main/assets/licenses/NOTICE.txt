@@ -1,6 +1,6 @@
 Nijbhasha tablet app: licence notice
 
-The app's own code is MIT-licensed (https://github.com/barath0512s-rgb/sih-hackathon, LICENSE).
+The app's own code is MIT-licensed (https://github.com/barath0512s-rgb/nijbhasha, LICENSE).
 
 This APK includes espeak-ng (GPL-3.0-or-later), compiled into sherpa-onnx's
 native library for speech synthesis. The APK as a whole is therefore
@@ -9,7 +9,7 @@ distributed under the terms of the GNU General Public License, version 3
 the MIT licence on their own.
 
 Corresponding source:
-- this app: https://github.com/barath0512s-rgb/sih-hackathon (android/, and the
+- this app: https://github.com/barath0512s-rgb/nijbhasha (android/, and the
   build steps in android/README.md)
 - espeak-ng as built into sherpa-onnx 1.13.8:
   https://github.com/csukuangfj/espeak-ng/archive/ed530aa113046142eb5115cf2fc9157854d0ffe1.zip
