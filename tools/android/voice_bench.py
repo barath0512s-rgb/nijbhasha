@@ -148,11 +148,19 @@ def main():
         dc.adb(s, "shell", "am", "force-stop", PKG)
         dc.adb(s, "shell", "am", "start", "-n", f"{PKG}/.MainActivity")
         time.sleep(4)
-        dc.adb(s, "shell", "mkdir", "-p", f"{EXT}/import")
+        # The app creates its import folder itself (see device_check.stage_setup: on Android 11
+        # a folder made by adb could not be listed by the app); then push, and bring the app
+        # back to the front so onResume imports it.
+        for _ in range(30):
+            if "u0_a" in dc.adb(s, "shell", "ls", "-ld", f"{EXT}/import", check=False):
+                break
+            time.sleep(1)
         for pat in ("content-pack-*.zip", "model-pack-*.zip"):
             z = sorted(glob.glob(str(ROOT / "dist" / "packs" / pat)))[-1]
             t0 = time.time()
             dc.adb(s, "push", z, f"{EXT}/import/{Path(z).name}", timeout=1200)
+            dc.adb(s, "shell", "input", "keyevent", "KEYCODE_HOME")
+            time.sleep(1)
             dc.adb(s, "shell", "am", "start", "-n", f"{PKG}/.MainActivity")      # onResume imports the folder
             while dc.adb(s, "shell", "ls", f"{EXT}/import/", check=False).strip():
                 if time.time() - t0 > 1800:
@@ -164,14 +172,21 @@ def main():
     dc.adb(s, "shell", "am", "broadcast", "-a", "android.intent.action.AIRPLANE_MODE", "--ez", "state", "true", check=False)
     airplane = dc.airplane_on(s)
 
-    dc.adb(s, "shell", "rm", "-rf", f"{EXT}/bench")
-    dc.adb(s, "shell", "mkdir", "-p", f"{EXT}/bench")
-    dc.adb(s, "push", str(OUT) + "/.", f"{EXT}/bench/", timeout=600)
+    # Android 11 (Realme, 28 Sep): the app could read files in a folder adb made but not create
+    # result.json in it (EACCES). So the clips and manifest go to bench_in/ (made by adb, read by
+    # the app), bench/ is removed so the app creates it itself (getExternalFilesDir) and writes
+    # result.json there, and the manifest the app reads points to ../bench_in/.
+    dev = {k: [{**x, "file": "../bench_in/" + x["file"]} if "file" in x else x for x in v] if isinstance(v, list) else v
+           for k, v in man.items()}
+    (OUT / "manifest_device.json").write_text(json.dumps(dev, ensure_ascii=False), encoding="utf-8")
+    dc.adb(s, "shell", "rm", "-rf", f"{EXT}/bench", f"{EXT}/bench_in")
+    dc.adb(s, "shell", "mkdir", "-p", f"{EXT}/bench_in")
+    dc.adb(s, "push", str(OUT) + "/.", f"{EXT}/bench_in/", timeout=600)
     dc.adb(s, "logcat", "-c", check=False)
     sampler = dc.PssSampler(s)
     sampler.start()
     t0 = time.time()
-    dc.adb(s, "shell", "am", "start", "-n", f"{PKG}/.MainActivity", "--es", "voice_bench", "manifest.json")
+    dc.adb(s, "shell", "am", "start", "-n", f"{PKG}/.MainActivity", "--es", "voice_bench", "../bench_in/manifest_device.json")
     while "voice_bench done" not in dc.adb(s, "logcat", "-d", "-s", "tablet:I", check=False):
         if time.time() - t0 > 3600:
             raise SystemExit("bench did not finish in 60 min")

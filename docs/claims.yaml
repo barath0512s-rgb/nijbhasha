@@ -378,9 +378,9 @@
   status: "NOT MEASURED"
   evidence: bench/results/lesson_match.md
 - id: a1_realme
-  text: "A1 on-device voice (spoken lesson lines, spoken answers) timed on the Realme Pad Mini (4 GB, Android 11)"
-  status: "NOT MEASURED"
-  evidence: STATUS.md
+  text: "A1 on the Realme Pad Mini (4 GB, Android 11), airplane mode: spoken Hindi lesson lines voice to voice p50 0.70 s, p90 1.20 s (n = 50); matching precision 0.980, recall 0.833; transcripts identical to the laptop on 87 of 90"
+  status: "TRUE"
+  evidence: bench/results/realme-pad-mini-4gb-android11_2026-09-28_voice.md
 - id: m1_realme
   text: "Release app on the Realme Pad Mini (4 GB, Android 11) in airplane mode: signed content pack imported in 7.0 s; 24 of 24 contract cases; the page lists lesson lines and Translate shows Santali; native microphone works; peak PSS app + WebView 294 MB (both passes ran offline: the tablet was in airplane mode throughout)"
   status: "TRUE"

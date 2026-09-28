@@ -348,7 +348,8 @@ def uplift():
             return ms[f] + (ms[min(f + 1, len(ms) - 1)] - ms[f]) * (x - f)
         out("voice to voice, lesson lines, p50 / p90", f"{lin(.5) / 1000:.2f} / {lin(.9) / 1000:.2f} s (n={len(ms)})", src)
         p = v["peak_pss_kb"]
-        out("peak PSS, app + WebView", f"{p['app'] / 1024:.0f} + {p['renderer'] / 1024:.0f} MB", src)
+        out("peak PSS, app + WebView", f"{p['app'] / 1024:.0f} + {p['renderer'] / 1024:.0f} MB" if p.get("renderer") is not None
+            else f"app {p['app'] / 1024:.0f} MB (WebView: {NM})", src)
         a = v["answers"]
         out("spoken answers graded as expected", f"{sum((x['signal'] == 'green') == (x['expect'] == 'green') for x in a)} of {len(a)}", src)
     for f in sorted(glob.glob(str(RESULTS / "*_nmt.json"))):

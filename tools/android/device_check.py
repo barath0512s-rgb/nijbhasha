@@ -114,7 +114,14 @@ def device_info(s):
 
 
 def app_alive(s):
-    return bool(adb(s, "shell", "pidof", PKG, check=False).strip())
+    """Three empty pidof answers in a row, 1 s apart: one can be an adb hiccup (the Realme A1 run
+    of 28 Sep was stopped by a single empty answer while the app kept running)."""
+    for i in range(3):
+        if adb(s, "shell", "pidof", PKG, check=False).strip():
+            return True
+        if i < 2:
+            time.sleep(1)
+    return False
 
 
 def install(s, apk, replace=False):
