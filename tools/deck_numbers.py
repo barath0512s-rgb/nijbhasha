@@ -367,6 +367,18 @@ def uplift():
         if not any("normalisation" in json.loads(f.read_text(encoding="utf-8")) for f in mv):
             out("final scores, after the nukta fix", NM, "no run of the fixed notebook yet")
         out("the hub's int8 ONNX engine, scored", NM, "the scores above are the notebook's PyTorch model")
+    vr = RESULTS / "voice_rule_finale.json"
+    if vr.exists():
+        r = json.loads(vr.read_text(encoding="utf-8"))
+        print("\nOwn Santali voice (C4), finale rule: one speaker, 0.6 h, 261 training clips (259 after the length filter), 150 epochs; "
+              "not reviewed by a native speaker")
+        for name, key in (("held-out pack lines", "pack_heldout"), ("20 held-out recordings' texts", "heldout_clips_20")):
+            for v in ("piper", "ours"):
+                x = r["summary"][key][v]
+                out(f"{name}, {'Piper' if v == 'piper' else 'C4 voice'}: CER mean / median / fails",
+                    f"{x['cer600_mean']:.3f} / {x['cer600_median']:.3f} / {x['failures']} of {x['n']}",
+                    "bench/results/voice_rule_finale.md")
+        out("decision (rule fixed 27 Sep)", r["decision"], "docs/voice_rule_finale.md")
     rt = ROOT / "eval" / "results" / "roundtrip_flag.json"
     if rt.exists():
         r = json.loads(rt.read_text(encoding="utf-8"))

@@ -485,6 +485,19 @@
   text: "Peak app PSS while translating on the 2 GB emulator (after the memory fix): 1197 MB, above the 900 MB guideline"
   status: "TRUE"
   evidence: bench/results/emulator-2gb-android9_2026-09-26_nmt_memfix.md
+- id: c4_voice_built
+  text: "Own Santali voice (C4): facebook/mms-tts-unr (CC BY-NC 4.0) fine-tuned on one IndicVoices-R Santali speaker (CC BY 4.0), S4257968200377182, 0.6 h, 261 training clips in metadata.csv (259 used after the training script's length filter), 150 epochs; a small-data voice, not in the app"
+  status: "TRUE"
+  evidence: docs/model_cards/santali_voice_c4.md
+- id: c4_voice_rule
+  text: "By the finale voice rule (fixed 27 Sep), the C4 voice replaces Piper"
+  status: "FALSE"
+  evidence: bench/results/voice_rule_finale.md
+  note: "held-out pack lines (n=112), round-trip CER mean / median / failures: Piper 0.445 / 0.272 / 24, C4 0.788 / 0.705 / 86"
+- id: c4_voice_native_review
+  text: "The C4 Santali voice is reviewed by native speakers (MOS or listening)"
+  status: "NOT MEASURED"
+  evidence: docs/model_cards/santali_voice_c4.md
 - id: c1_orf_alignment
   text: "Reading-fluency alignment on public adult Hindi read speech: 5.9 % of correctly read words marked wrongly; simulated misreadings found with recall 1.000, precision 0.570"
   status: "TRUE"

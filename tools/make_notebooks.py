@@ -346,6 +346,11 @@ VOICE = [
   the original MMS checkpoint (`convert_original_discriminator_checkpoint.py --language_code unr`).
 * **Export:** `tools/export/export_mms_vits_onnx.py` (this repo), tested on the laptop with mms-tts-unr.
 * It ships only if it beats the live voice on the A6 round-trip CER, with a model card.
+* **Patches to the pinned `finetune-hf-vits` 6f3f51f** (applied in this notebook, the repo is not forked):
+  (1) the speaker_id cell before "5. Fine-tune": only the reads of `batch["speaker_id"]` become `batch.get("speaker_id")` (a single-speaker
+  dataset has none; the assignments stay); (2) `do_eval` off, because its `utils/plot.py` calls
+  `fig.canvas.tostring_rgb()`, which current matplotlib no longer has. Notebook settings: at least 150
+  training clips (the README's "80 to 150 samples"); the 20 held-out wavs move to `sat_heldout/`.
 
 **Run on Kaggle (exact steps)**
 1. kaggle.com → Settings → Phone verification done (needed for GPU and Internet).
@@ -476,6 +481,17 @@ import csv
 with open(f"{DATA}/metadata.csv", "w", newline="", encoding="utf-8") as f:
     w = csv.writer(f); w.writerow(["file_name", "text"])
     for l in train: w.writerow([l["file_name"], l["text"]])
+# The 20 held-out wavs leave the training folder: the dataset loader reads every wav in it, so they
+# would otherwise be trained on. They go to PERSIST/sat_heldout/ (each entry records its folder).
+HELD_DIR = f"{PERSIST}/sat_heldout"; os.makedirs(HELD_DIR, exist_ok=True)
+for l in held:
+    src = f"{DATA}/{l['file_name']}"
+    if os.path.exists(src):
+        shutil.move(src, f"{HELD_DIR}/{os.path.basename(src)}")
+    l["folder"] = HELD_DIR
+left = len(glob.glob(f"{DATA}/wav/*.wav"))
+print("wav files left in the training folder:", left, "| training rows:", len(train))
+assert left == len(train), f"{left} wav files in the training folder but {len(train)} training rows"
 json.dump(held, open(f"{PERSIST}/held_out_clips.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 print(len(train), "train clips,", len(held), "held out")
 '''),
@@ -498,25 +514,19 @@ if not os.path.exists(f"{BASE_TRAIN}/config.json"):
                f"--pytorch_dump_folder_path {shlex.quote(BASE_TRAIN)}", "convert_discriminator.log", cwd="finetune-hf-vits")
 '''),
     ("code", r'''
-# 4b. Patch finetune-hf-vits (pinned 6f3f51f) for a single-speaker dataset: only the READS of
-# batch["speaker_id"] (lines 1099, 1288, 1390) become batch.get("speaker_id"); the assignments
-# (lines 380, 753) must stay. A global replace turned them into `batch.get(...) = ...`: SyntaxError.
-import re, py_compile
-SCRIPT = "finetune-hf-vits/run_vits_finetuning.py"
-src = open(SCRIPT, encoding="utf-8").read()
-# 1. Undo a previously broken file: an assignment to batch.get("speaker_id") back to batch["speaker_id"].
-src, undone = re.subn(r'batch\.get\(\s*["\']speaker_id["\']\s*\)(?=\s*=[^=])', 'batch["speaker_id"]', src)
-# 2. Patch the reads only: not followed by "=" (an assignment), "==" is still a read.
-src, patched = re.subn(r'batch\["speaker_id"\](?!\s*=[^=])', 'batch.get("speaker_id")', src)
-open(SCRIPT, "w", encoding="utf-8").write(src)
-py_compile.compile(SCRIPT, doraise=True)
-print(f"undone {undone}, patched {patched} (0 on a re-run: already patched)")
-for n, line in enumerate(src.splitlines(), 1):
-    if 'batch["speaker_id"]' in line or 'batch.get("speaker_id")' in line:
-        print(f"{n:5}: {line.strip()}")
-assigns = len(re.findall(r'batch\["speaker_id"\]\s*=[^=]', src))
-reads = src.count('batch.get("speaker_id")')
-assert assigns == 2 and reads == 3 and not re.search(r'batch\["speaker_id"\](?!\s*=[^=])', src), (assigns, reads)
+import re, subprocess, sys
+p = "finetune-hf-vits/run_vits_finetuning.py"
+s = open(p, encoding="utf-8").read()
+s = re.sub(r"batch\.get\('speaker_id'\)(\s*=[^=])", r'batch["speaker_id"]\1', s)
+s, n = re.subn(r"batch\[\s*['\"]speaker_id['\"]\s*\](?!\s*=[^=])", "batch.get('speaker_id')", s)
+open(p, "w", encoding="utf-8").write(s)
+subprocess.run([sys.executable, "-m", "py_compile", p], check=True)
+used = s.count("batch.get('speaker_id')")
+print("speaker_id patch: replaced", n, "| patched reads", used)
+for i, l in enumerate(s.splitlines(), 1):
+    if "speaker_id" in l and "batch" in l:
+        print(i, l.strip())
+assert used > 0, "STOP: speaker_id patch did not apply"
 '''),
     ("code", r'''
 # 5. Fine-tune. Resumes from the newest checkpoint-* in OUT.
@@ -532,7 +542,9 @@ cfg = {
   "do_train": True, "num_train_epochs": 150, "gradient_accumulation_steps": 1, "gradient_checkpointing": False,
   "per_device_train_batch_size": 16, "learning_rate": 2e-5, "adam_beta1": 0.8, "adam_beta2": 0.99,
   "warmup_ratio": 0.01, "group_by_length": False,
-  "do_eval": True, "eval_steps": 200, "per_device_eval_batch_size": 16, "max_eval_samples": 8,
+  # do_eval off: evaluation draws plots with utils/plot.py of the pinned 6f3f51f, which calls
+  # fig.canvas.tostring_rgb(), gone from current matplotlib (3.10 on Kaggle; absent in 3.11.1).
+  "do_eval": False, "eval_steps": 200, "per_device_eval_batch_size": 16,
   "do_step_schedule_per_epoch": True, "save_steps": 500, "save_total_limit": 2,
   "weight_disc": 3, "weight_fmaps": 1, "weight_gen": 1, "weight_kl": 1.5, "weight_duration": 1, "weight_mel": 35,
   "fp16": True, "seed": 456}

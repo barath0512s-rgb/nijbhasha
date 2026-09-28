@@ -34,10 +34,11 @@ def to_model_script(text):
 
 
 class MmsVoice:
-    def __init__(self, lang, threads=2):
+    def __init__(self, lang, threads=2, model_dir=None):
+        """model_dir: another voice exported the same way (e.g. the C4 Santali voice); default MMS_DIR/lang."""
         import onnxruntime as ort
-        d = MMS_DIR / lang
-        self.lang = lang
+        d = Path(model_dir) if model_dir else MMS_DIR / lang
+        self.lang, self.dir = lang, d
         self.meta = json.loads((d / "tts.json").read_text(encoding="utf-8"))
         self.vocab = {}
         for line in (d / "tokens.txt").read_text(encoding="utf-8").split("\n"):
@@ -56,7 +57,7 @@ class MmsVoice:
         hand risks a mismatch, so the real tokenizer is used.)"""
         if self._tok is None:
             from transformers import AutoTokenizer
-            self._tok = AutoTokenizer.from_pretrained(str(MMS_DIR / self.lang / "tokenizer"))
+            self._tok = AutoTokenizer.from_pretrained(str(self.dir / "tokenizer"))
         return self._tok(odia_text).input_ids
 
     def oov(self, odia_text):
