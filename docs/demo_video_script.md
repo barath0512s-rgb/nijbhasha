@@ -7,8 +7,9 @@ Every segment carries its **device label** on screen, exactly as written here.
 Two set-ups appear, never mixed in one shot:
 
 - **Laptop hub**: caption **"Laptop hub: everything runs on this laptop, offline"**.
-- **Tablet app**: recorded clips on the **Realme Pad Mini** (its session passed, 27 Sep), release
-  candidate `0.95-rc1`, content pack and model pack imported, airplane mode on. Caption
+- **Tablet app**: recorded clips on the **Realme Pad Mini** (its session passed, 27 Sep; rechecked
+  28 Sep), submission build `0.95` (tag `v0.95-submission`), content pack and model pack
+  imported, airplane mode on. Caption
   **"Realme Pad Mini, 4 GB RAM, Android 11, airplane mode"**.
 
 **Do not say or show:**
@@ -28,7 +29,7 @@ Two set-ups appear, never mixed in one shot:
 1. Laptop on mains power, other programs closed. `run_nijbhasha.bat`; then
    `python tools/demo_reset.py --forget-demo-correction` (must end with `Ready.`).
 2. Wi-Fi off. Chrome at `http://127.0.0.1:5000`, zoom 125 %.
-3. Tablet: release APK `0.95-rc1`, the newest signed **model pack** and **content pack** imported,
+3. Tablet: release APK `0.95`, the newest signed **model pack** and **content pack** imported,
    airplane mode on. Segment 3b needs the hub over the laptop's hotspot instead
    (`run_nijbhasha.bat https`, the tablet's Chrome at `https://192.168.137.1:5443`).
 4. A Santali speaker on the team writes the correction for segment 8 and, if possible, speaks the

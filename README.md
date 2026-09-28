@@ -14,10 +14,11 @@ Santali. The teacher hears Hindi.
 | Problem statement | SIH26042, *AI-Powered Vernacular Pedagogy and Real-Time Translation Tool for Mother Tongue-Based Primary Education* (Government of Jharkhand) |
 | Theme / category | Smart Education / Software |
 | Languages | Hindi (Devanagari) ↔ Santali (Ol Chiki) |
-| Runs today on | A laptop (the "laptop hub"), CPU only, no internet. A tablet or phone on the same Wi-Fi can use it through its browser |
-| In progress | The Android app that runs everything on a 2 GB RAM, Android 9+ tablet with no laptop (work package 4). **Not built yet** |
+| Runs today on | (1) A laptop (the "laptop hub"), CPU only, no internet; a tablet or phone on the same Wi-Fi can use it through its browser. (2) **The Android app** (`android/`, build 0.95, tag `v0.95-submission`), in airplane mode, from signed content and model packs: measured on a **Realme Pad Mini (4 GB, Android 11)** and a **2 GB RAM, Android 9 emulator** |
+| Interface languages | हिंदी, ᱥᱟᱱᱛᱟᱲᱤ (Santali) and English, one button each, on the hub and the tablet |
+| Current state | `STATUS.md`, the two tables at its top (submission freeze, 28 Sep 2026). Where this README and those tables differ, the tables win |
 
-The product name is on hold. It is set in one place, `APP_NAME` in `config.py`.
+The product name is set in one place, `APP_NAME` in `config.py`.
 
 **Every number in this README comes from a script in this repository.** Run
 `python tools/deck_numbers.py` to print them with their source files. Anything
@@ -51,12 +52,12 @@ laptop, offline, and checked by the named test or script.
 
 | # | Requirement | Runs today (laptop, offline) | Not done yet | How to check |
 |---|---|---|---|---|
-| 1 | Hindi-speaking teachers teach in the mother tongue (Ho, Mundari, Santali) with no language training | **Santali only.** Hindi ↔ Santali, typed or spoken, with Santali speech | Ho and Mundari: no speech recognition or translation. **Voices only, labelled Preview**, on the laptop hub (Meta MMS, CC BY-NC 4.0; pronunciation not reviewed). Mundari translation is prepared (a LoRA notebook on the MMLoSo data) but **not trained yet** | `python test_pipeline.py` |
+| 1 | Hindi-speaking teachers teach in the mother tongue (Ho, Mundari, Santali) with no language training | **Santali:** Hindi ↔ Santali, typed or spoken, with Santali speech (hub); on the tablet for lesson lines and typed sentences. **Mundari: translation preview** on the laptop hub (IndicTrans2 + our Hindi–Mundari LoRA adapters, trained on the MMLoSo 2025 data; held-out 5% of the MMLoSo 2025 training file, n=1,021 pairs: hi→unr chrF++ 30.92, unr→hi 35.97; not comparable with the Santali test sets), labelled Preview | Ho and Mundari: no speech recognition. Mundari and Ho **voices are Preview**, laptop hub only (Meta MMS, CC BY-NC 4.0; pronunciation not reviewed). Ho: no translation (no licensed Ho text found). Mundari output: not reviewed by a native speaker; not on the tablet | `python test_pipeline.py`, `pytest tests/test_mundari_preview.py` |
 | 2 | Translate Hindi FLN content (lesson scripts, activity instructions, assessment prompts) into accurate text and synthesised audio | Every lesson line is translated to Ol Chiki text and spoken offline. 18 lesson sentences come from a hand-written glossary; other lines come from the model. A model translation whose back-translation drifts is marked "⚠️ मूल वक्ता से जाँचें" and not played automatically (typed lines and content packs; a weak signal: `eval/results/roundtrip_flag.md`) | Translation quality on public test sets (the model alone): chrF++ Hindi → Santali 31.3 (IN22-Gen), 32.2 (IN22-Conv), 27.4 (FLORES-200); see §6. Lesson lines themselves: **NOT MEASURED** (no reference translations). No native speaker has reviewed the output or the Santali voice. Content modes organise the lesson but **do not change the translation** (see §5) | `pytest tests/test_api.py`, `tests/test_offline.py` |
-| 3 | Real-time voice-to-voice dialogue, no more than 3 s | Laptop, offline, public adult speech, three runs (AC, Best performance mode, apps closed; median of the runs' p90s, distinct sentences, definitions in §6). **Headline, sentences of ≤ 17 words, from the end of speech: full time p90 2.85 s** (32 sentences), first audio p90 2.41 s; upload to reply audio, Hindi → Santali, p90 2.14 s (34 sentences). Santali → Hindi, all 80 answers: **p90 2.58 s**; answers of ≤ 10 words 2.27 s (IndicVoices validation split; may overlap model-development data). Neither figure includes the 500 ms silence endpoint, which is off by default | Longer sentences: 18-23 words take p90 2.47 s (upload) to 4.76 s (end of speech; why the two differ is explained, not yet measured in class, §6) to finish; over all sentences, first audio p90 was 2.54, 2.75 and **3.40 s** in the three runs. Bins under 10 sentences are small samples. Child speech, classroom Wi-Fi, and a tablet with no laptop: **NOT MEASURED** | `python bench/latency_steps.py --backend app --tag hp1` and `python bench/bench_latency.py --clips bench/clips/public/manifest.json --label public_hp1` (three times), then `python tools/latency_runs.py` |
+| 3 | Real-time voice-to-voice dialogue, no more than 3 s | Laptop, offline, public adult speech, three runs (AC, Best performance mode, apps closed; median of the runs' p90s, distinct sentences, definitions in §6). **Headline, sentences of ≤ 17 words, from the end of speech: full time p90 2.85 s** (32 sentences), first audio p90 2.41 s; upload to reply audio, Hindi → Santali, p90 2.14 s (34 sentences). Santali → Hindi, all 80 answers: **p90 2.58 s**; answers of ≤ 10 words 2.27 s (IndicVoices validation split; may overlap model-development data). Neither figure includes the 500 ms silence endpoint, which is off by default | Longer sentences: 18-23 words take p90 2.47 s (upload) to 4.76 s (end of speech; why the two differ is explained, not yet measured in class, §6) to finish; over all sentences, first audio p90 was 2.54, 2.75 and **3.40 s** in the three runs. Bins under 10 sentences are small samples. **On the tablet, no laptop, spoken lesson lines:** Realme Pad Mini (4 GB, Android 11) p50 0.70 s, p90 1.20 s (n = 50); 2 GB emulator p50 0.50 s, p90 0.82 s. Free-form speech on a 2 GB tablet: p50 13.48 s, so it stays on the laptop hub. Child speech, classroom Wi-Fi, a real 2 GB tablet: **NOT MEASURED** | `python bench/latency_steps.py --backend app --tag hp1` and `python bench/bench_latency.py --clips bench/clips/public/manifest.json --label public_hp1` (three times), then `python tools/latency_runs.py` |
 | 4 | Auto-generated bilingual worksheets and visual flashcard sets, aligned to NIPUN Bharat learning outcomes | Worksheet v2 for every lesson: student exercises with pictures (count and write, match picture to word, fill in the blank, circle the answer, trace the numeral), Ol Chiki / Devanagari / Western numerals, the Lakshya IDs and a teacher answer key; cut-out flashcard PDFs with a review-pending mark (samples: `docs/samples/`). Flashcard decks (`GET /flashcards`). A reading-fluency check (words correct per minute against the NIPUN goals, teacher override). A teacher can add a lesson from Hindi text (§3). The tablet serves the pre-rendered PDFs from its content pack | 18 lessons (Balvatika to Grade 3, literacy and numeracy): 5 built in, 13 written by the team; every Lakshya has a lesson. Reading fluency on adult read speech: 5.9 % of correct words marked wrongly (`bench/results/orf_validation.md`); **children: NOT MEASURED**. The lesson-to-goal mapping has not been checked by a teacher. The tablet does not draw PDFs itself | `pytest tests/test_lakshya.py tests/test_curriculum.py` |
-| 5 | Whole application offline on low-cost tablets (**2 GB RAM, Android 9+**) after initial content synchronisation | Fully offline **on the laptop hub** (tablets use its browser page over local Wi-Fi). **Android app** (Android 9 emulator, 2 GB RAM, airplane mode): lessons, flashcards, worksheets from a signed content pack (24 of 24 contract cases); **on-device voice for lesson lines**: speech recognition and speech on the tablet, a spoken lesson line matched to its pre-translated Santali (voice to voice p50 0.50 s, p90 0.82 s, to the reply audio file); **typed new sentences translated on the tablet** (same output as the laptop on 1502 of 1503 test sentences, p50 0.60 s); corrections synced to the hub by signed files | Free-form speech → speech on 2 GB: works but p50 13.48 s (models swapped), so it is **off**; translating needs about 1.2 GB (peak app PSS 1197 MB), above the 900 MB guideline. Lesson-line matching and spoken answers with real teachers' and children's voices: **NOT MEASURED**. The Realme Pad Mini (4 GB, Android 11): **NOT MEASURED** yet | `bench/results/emulator-2gb-android9_2026-09-26_voice.md`, `…_nmt.md`, `…_nmt_memfix.md`; `pytest tests/test_offline.py` |
-| 6 | A working application, a demo video and a GitHub repository | The application and this repository | Demo video: not recorded yet | |
+| 5 | Whole application offline on low-cost tablets (**2 GB RAM, Android 9+**) after initial content synchronisation | Fully offline **on the laptop hub** (tablets use its browser page over local Wi-Fi). **Android app** (Android 9 emulator, 2 GB RAM, airplane mode): lessons, flashcards, worksheets from a signed content pack (24 of 24 contract cases); **on-device voice for lesson lines**: speech recognition and speech on the tablet, a spoken lesson line matched to its pre-translated Santali (voice to voice p50 0.50 s, p90 0.82 s, to the reply audio file); **typed new sentences translated on the tablet** (same output as the laptop on 1502 of 1503 test sentences, p50 0.60 s); corrections synced to the hub by signed files | Free-form speech → speech on 2 GB: works but p50 13.48 s (models swapped), so it is **off**; translating needs about 1.2 GB (peak app PSS 1197 MB), above the 900 MB guideline. Lesson-line matching and spoken answers with real teachers' and children's voices: **NOT MEASURED**. A real 2 GB tablet: **NOT MEASURED**. **Realme Pad Mini (4 GB, Android 11), airplane mode:** 24 of 24 contract cases, peak PSS 294 MB; spoken lesson lines p50 0.70 s, p90 1.20 s (n = 50); typed translation p50 1.50 s, chrF++ 29.00 (laptop 28.75), not identical to the laptop's output on this ARM64 device (65 of 80 golden sentences) (`bench/results/realme-pad-mini-4gb-android11_2026-09-28_voice.md`, `…_2026-09-27_nmt.md`) | `bench/results/emulator-2gb-android9_2026-09-26_voice.md`, `…_nmt.md`, `…_nmt_memfix.md`; `pytest tests/test_offline.py` |
+| 6 | A working application, a demo video and a GitHub repository | The laptop hub, the Android app (`android/`) and this repository | Demo video: script and captions ready (`docs/demo_video_script.md`); link added here once recorded | |
 
 ### Languages and how far each stage is (from `languages.json`)
 
@@ -127,14 +128,17 @@ shown. The model runs only when the other three cannot answer.
 - **Laptop hub = higher accuracy.** The laptop runs the larger models: IndicConformer
   600M for speech and IndicTrans2 in full precision (fp32), identical to the
   published model.
-- **Tablet = portable.** The Android app (work in progress) will run smaller
-  engines that fit a 2 GB RAM, Android 9+ tablet: IndicConformer **120M** per
-  language (Hindi and Santali) and IndicTrans2 **int8** with a length cap and a
-  repetition guard (`nmt_guard.py`). Measured on the laptop: 120M Hindi WER
-  10.9% (600M: 12.5%), 120M Santali 34.5% (600M: 31.0%); int8 IN22-Conv chrF++
-  32.0 / 35.0 vs fp32 32.2 / 35.1. Santali on the tablet uses fp32 if the app's
-  peak PSS stays under 900 MB with speech, translation and voice loaded,
-  otherwise int8 (decided when those engines run on the device, M3-M4).
+- **Tablet = portable.** The Android app (`android/`: Kotlin, WebView on the
+  same `frontend.html`, a local server on 127.0.0.1) runs smaller engines:
+  IndicConformer **120M** int8 per language (Hindi and Santali) through
+  sherpa-onnx, IndicTrans2 **int8** on ONNX Runtime with a length cap and a
+  repetition guard (`nmt_guard.py`), and the Piper voice. Measured on the
+  laptop: 120M Hindi WER 10.9% (600M: 12.5%), 120M Santali 34.5% (600M: 31.0%);
+  int8 IN22-Conv chrF++ 32.0 / 35.0 vs fp32 32.2 / 35.1. Content and models
+  arrive as **signed packs** (Ed25519; a changed or unsigned pack is refused).
+  Spoken **lesson lines** are recognised and matched to their pre-translated
+  Santali on the tablet; typed new sentences are translated on the tablet;
+  free-form speech stays on the laptop hub (on 2 GB it swaps models: p50 13.48 s).
 
 ### Speech recognition: IndicConformer 600M
 - `ai4bharat/indic-conformer-600m-multilingual`, ONNX Runtime on the CPU. It reads Santali (`sat`) in Ol Chiki natively.
@@ -406,8 +410,8 @@ Sources: `bench/results/latency_steps_app.md`, `latency_steps_torch-t14.md`,
 |---|---|
 | Real teacher and child recordings | **NOT MEASURED** (`bench/clips/real/` is empty) |
 | ASR error rate on child speech and with classroom noise | **NOT MEASURED** (adult speech, both languages: see above) |
-| Voice to voice from a tablet over classroom Wi-Fi | **NOT MEASURED**. The browser logs it, so `/metrics/latency` will show it after classroom use |
-| Anything on a 2 GB RAM, Android 9+ tablet | **NOT MEASURED** (work package 4) |
+| Voice to voice from a tablet over classroom Wi-Fi | **NOT MEASURED** in a classroom. Realme Pad Mini's browser via the laptop hub over the laptop's hotspot, a spoken lesson line: 1.71, 0.97, 0.87 s (3 of 3; one speaker) |
+| A real 2 GB RAM, Android 9+ tablet | **NOT MEASURED**. Measured instead on a 2 GB Android 9 emulator and a Realme Pad Mini (4 GB, Android 11): see §2 row 5 |
 | Peak RAM of the laptop server | **NOT MEASURED** |
 
 ---
@@ -437,14 +441,14 @@ Ministry of Education, 2021, p. 11. The IDs are ours.
 | 3 | हज़ार तक की संख्याएँ (numbers to 9999, place value) | NIPUN-G3-NUM-1 | imported |
 | 3 | ज़ोर से पढ़ना: रीना और तालाब (read-aloud fluency) | NIPUN-G3-LIT-2, NIPUN-G3-LIT-1 | imported |
 
-Every stage from Balvatika to Grade 3 now has at least one literacy and one numeracy lesson, and every Lakshya has a lesson (G2-LIT-2, 45–60 words per minute, since 27 Sep 2026). For reading fluency (G2-LIT-2, G3-LIT-2) the app has a reading check: the child reads a passage aloud, the hub (or the tablet) recognises it, aligns it to the passage and counts words correct per minute; the teacher can override any word. Validated on adult read speech only; children: NOT MEASURED. For the imported lessons, the goals were suggested by keyword rules and confirmed by the team. Every mapping awaits teacher review.
+Every stage from Balvatika to Grade 3 now has at least one literacy and one numeracy lesson, and every Lakshya has a lesson (G2-LIT-2, 45–60 words per minute, since 27 Sep 2026). For reading fluency (G2-LIT-2, G3-LIT-2) the app has a reading check: the child reads a passage aloud, the laptop hub recognises it (not on the tablet yet), aligns it to the passage and counts words correct per minute; the teacher can override any word. Validated on adult read speech only; children: NOT MEASURED. For the imported lessons, the goals were suggested by keyword rules and confirmed by the team. Every mapping awaits teacher review.
 Details: `docs/lakshya_mapping.md`.
 
 ---
 
 ## 8. The interface
 
-- **Hindi by default, Santali as an option.** The teacher's screen has no English. The `EN` button appears only in evaluator mode: open the page with `?evaluator=1` (and `?evaluator=0` to turn it off again).
+- **Three interface languages: हिंदी (default), ᱥᱟᱱᱛᱟᱲᱤ and English**, one button each in the header, on the laptop hub and in the Android app (`config.UI_ENGLISH`; a test checks every interface string has all three). In English, numbers use Western digits and the 13 team lessons show English titles; lesson lines and translations stay Hindi and Santali.
 - The Santali interface text was written without a native speaker, so treat it as a first draft.
 - Five views: Classroom (कक्षा), Lessons (पाठ), Flashcards (चित्र पत्ते), Progress (प्रगति), Settings (सेटिंग).
 - Settings are kept in the browser: interface language, autoplay, large type, spoken confirmations, and the **server address**, which points a tablet's browser at the laptop hub.
@@ -495,8 +499,9 @@ private-network addresses.
 
 Everything still runs on the laptop; the tablet is only a screen and a
 microphone. Checked on the laptop: a client that trusts only the hub's CA
-connects over the Wi-Fi address (`tests/test_https.py`). **Not checked yet:
-the microphone on a real tablet.**
+connects over the Wi-Fi address (`tests/test_https.py`). Checked on a real
+tablet: the Realme Pad Mini's Chrome over the laptop's hotspot, a spoken lesson
+line, 3 of 3 end to end (`bench/results/realme-pad-mini-4gb-android11_2026-09-27_hub_mic.md`).
 
 ---
 
@@ -604,7 +609,7 @@ A reply from `/translate/text`:
 | `tools/deck_numbers.py` | Prints every number the deck may use, with its source |
 | `tools/make_cert.py` | Certificate for the HTTPS laptop hub |
 | `curriculum.py` | Curriculum import: reading uploads, splitting, labels, goal suggestions, flashcard words |
-| `content/team_lessons.json`, `tools/import_lessons.py` | The team's 12 lessons (added on first start), and a script to import other lesson files through the import endpoints |
+| `content/team_lessons.json`, `tools/import_lessons.py` | The team's 13 lessons (added on first start), and a script to import other lesson files through the import endpoints |
 | `tools/demo_reset.py`, `docs/demo_video_script.md` | Getting ready to record the demo, and the shot list |
 | `docs/` | Lakshya mapping, glossary changes, the native-review list |
 | `THIRD_PARTY_LICENSES.md` | Model, voice, package and font licences |
@@ -620,51 +625,39 @@ virtual environment. A fresh clone must download the models (§9).
 
 | Item | Impact |
 |---|---|
-| Nothing runs on a tablet without the laptop | The ministry's on-device requirement is not met yet (work package 4) |
-| Santali only; no Ho or Mundari | The models we use do not support them |
+| No real 2 GB tablet measured | On-device results are from a 2 GB Android 9 emulator and a Realme Pad Mini (4 GB, Android 11). Translating on the tablet needs about 1.2 GB, above the 900 MB guideline, so it loads on demand |
+| Free-form speech → speech is not on the tablet | On 2 GB it works but takes p50 13.48 s (models swapped), so it stays on the laptop hub; the tablet handles spoken lesson lines and typed sentences |
+| Ho and Mundari are previews | No speech recognition for either; Mundari translation and both voices on the laptop hub only, labelled Preview, not reviewed by a native speaker; Ho has no translation |
 | No native speaker has reviewed the Santali | This covers translations, the glossary, the transliteration, the Santali interface text and the voice. See `docs/native_review.md` |
 | Santali is spoken by a Hindi voice reading a transliteration | How well children understand it: **NOT MEASURED** |
-| All speed figures use synthetic clips | Real classroom speech may be slower or less accurate |
+| Speed figures use synthetic clips and public adult speech | Real classroom speech, children's voices and classroom noise may be slower or less accurate: **NOT MEASURED** |
 | Word lists in `education_glossary.py` are used only for flashcards | Translation uses whole verified sentences only |
-| Imported lessons are stored in the local database, not in git | The team's lessons are added again on any laptop's first start. A teacher's own imports stay on that laptop; content packs for tablets are work package 4 |
+| Imported lessons are stored in the local database, not in git | The team's lessons are added again on any laptop's first start. A teacher's own imports reach tablets through the next signed content pack (`tools/build_content_pack.py`) |
 | Line labels and goal suggestions come from simple keyword rules | The teacher checks every label and must confirm the goals. The rules were tuned on the team's own lessons: they matched 7 of 10 goal suggestions before tuning and 9 of 10 after. That is not an independent accuracy figure |
 | The NIPUN goal text on the import screen is in English | It is quoted from the Ministry's English guidelines |
-| The worksheet's headings are in English | The on-screen interface is not |
 | Flask development server | Fine for a classroom hub, not a public deployment |
-| Default voice licence is non-commercial (CC BY-NC-SA 4.0); `piper-tts` is GPL-3.0-or-later, installed separately and not redistributed | Our code is MIT (`LICENSE`). Moving speech to sherpa-onnx (Apache-2.0) is planned for the finale. See `THIRD_PARTY_LICENSES.md` |
+| Default voice licence is non-commercial (CC BY-NC-SA 4.0); Mundari/Ho voices CC BY-NC 4.0 | Fine for a free government programme; a commercial deployment would need other voices |
+| The APK includes espeak-ng (GPL-3.0-or-later) through sherpa-onnx's Piper path | The APK as a whole is distributed under GPL-3.0 terms (text and source notice in the APK and `android/`); our own code is MIT (`LICENSE`). On the laptop, `piper-tts` (GPL-3.0-or-later) is installed separately and not redistributed. See `THIRD_PARTY_LICENSES.md` |
 
 ---
 
 ## 14. Roadmap
 
-1. **Android app (work package 4):** on-device ASR, translation and speech on a 2 GB RAM, Android 9+ tablet, a content pack, and syncing teacher corrections.
+1. **A real 2 GB tablet:** repeat the emulator and Realme checks on real 2 GB, Android 9 hardware; bring free-form speech to the tablet within the memory budget.
 2. **Real recordings:** re-run every benchmark on teacher and child speech. Report adult and child, quiet and noisy, separately.
-3. **Native review** of the glossary, the number words, the transliteration and the voice.
-4. **Curriculum import:** add worksheets from imported lessons to the content pack, and let teachers edit a lesson after saving it.
-5. Move speech synthesis to sherpa-onnx (Apache-2.0) on both the laptop and Android.
+3. **Native review** of the glossary, the number words, the transliteration, the voice and the Mundari output; native listener ratings for the voice comparison (`docs/samples/mos_lite_sheet.md`).
+4. **Mundari and Ho:** Mundari on the tablet; Ho content once a native speaker writes it.
+5. A character-based Santali voice without espeak-ng, chosen by the rule fixed in advance (`docs/voice_rule_finale.md`).
 
 ---
 
 ## 15. Deck outline (for the slides)
 
-Use only numbers printed by `python tools/deck_numbers.py`. Label them
-"laptop, offline", and say "synthetic clips" wherever that applies.
-
-| # | Slide | Content | Source |
-|---|---|---|---|
-| 1 | Title | Name, SIH26042, Smart Education | header |
-| 2 | The problem | JEPC survey: 98% of schools teach in Hindi; Santali is 13.07% of Grade 1 home languages. Quote the report's exact sentences | §1 |
-| 3 | What the ministry asks | The six clauses, with runs today / not done yet | §2 |
-| 4 | What it does | The features in §3 | §3 |
-| 5 | How it works | Laptop-hub diagram; the four translation layers | §4 |
-| 6 | Speech in | IndicConformer, CTC measured about 2× faster than RNN-T (synthetic) | §4, §6 |
-| 7 | Translation | Direct Hindi ↔ Santali, no English in between | §4 |
-| 8 | Speech out | Ol Chiki → Devanagari → offline voice | §4 |
-| 9 | Speed | 1.51 s / 1.57 s median, 0 of 59 over 3 s: laptop, offline, synthetic clips | §6 |
-| 10 | NIPUN alignment | Lakshya table | §7 |
-| 11 | Teacher corrections | Stored and reused before the model | §3 |
-| 12 | Offline | Offline tests, `/health/models` | §2, §10 |
-| 13 | What is next | Android on-device, real recordings, native review | §14 |
+Use only numbers printed by `python tools/deck_numbers.py` or quoted in the two
+tables at the top of `STATUS.md`, each with its device label ("laptop hub,
+offline", "Realme Pad Mini, 4 GB, Android 11, airplane mode", "2 GB Android 9
+emulator") and "synthetic clips" or "public adult speech" wherever that applies.
+The do-not-say list in `docs/demo_video_script.md` applies to the deck too.
 
 ---
 
