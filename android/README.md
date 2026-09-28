@@ -33,6 +33,10 @@ cd android
 ./gradlew testDebugUnitTest assembleDebug
 ```
 
+If Gradle stops at once with `java.io.IOException: Unable to establish loopback connection`
+(Windows; Java's internal pipe is a Unix-domain socket in the temp folder), point that socket
+elsewhere, e.g. `JAVA_TOOL_OPTIONS=-Djdk.net.unixdomain.tmpdir=<repo>\dist\jtmp` (seen on 28 Sep 2026).
+
 Speech and translation models are not in the APK: build the model pack
 (`python tools/android/build_model_pack.py`, about 890 MB, signed) and import it
 like the content pack. Packs are signed on the hub (`pack_signing.py`); the app

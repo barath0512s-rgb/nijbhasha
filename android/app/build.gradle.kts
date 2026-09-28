@@ -25,8 +25,8 @@ android {
         applicationId = "org.team8bitpool.app"
         minSdk = 28
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1-m1"
+        versionCode = 2
+        versionName = "0.95-rc1"
         testInstrumentationRunner = "android.test.InstrumentationTestRunner"
         resValue("string", "app_name", appName)
         // The Realme Pad Mini (arm64) and the x86_64 emulator; keeps the APK smaller.

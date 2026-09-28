@@ -36,6 +36,8 @@ class VoiceTest {
             return File(audioDir, "$name.wav").also { it.writeBytes(Audio.wav(FloatArray(1600), 16000)) }
         }
         override fun describe() = JSONObject().put("asr", "fake").put("tts", "fake")
+            .put("nmt", if (nmtOn) "IndicTrans2 int8 (ONNX Runtime); new typed sentences; loaded: false"
+                        else "not in the installed model pack")
         var nmtOn = false
         override fun translate(text: String, direction: String) = if (nmtOn) Translation("ᱢᱳᱰᱮᱞ $text", false, 5) else null
     }
@@ -63,6 +65,17 @@ class VoiceTest {
         val r = api.handle("POST", "/translate/audio_stream", emptyMap(), body, ct)
         assertEquals(200, r.status); assertEquals("application/x-ndjson", r.type)
         return String(r.body).trim().lines().map { JSONObject(it) }
+    }
+
+    @Test
+    fun healthReportsTranslationOnTheTabletWhenItRuns() {          // was "not on device yet (M4)" although it ran
+        val (api, sp) = setup()
+        fun nmt() = JSONObject(String(api.handle("GET", "/health/models", emptyMap(), null, null).body))
+            .getJSONObject("languages").getJSONObject("hi").getJSONObject("nmt").getString("engine")
+        sp.nmtOn = true
+        assertTrue(nmt(), nmt().startsWith("on device: IndicTrans2"))
+        sp.nmtOn = false
+        assertTrue(nmt(), nmt().startsWith("not on device") && "M4" !in nmt())
     }
 
     @Test

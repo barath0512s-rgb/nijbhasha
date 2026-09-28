@@ -125,7 +125,11 @@ class SherpaSpeech(private val dir: File, private val settings: DeviceSettings, 
         .put("asr", "sherpa-onnx ${models.optString("sherpa_onnx")}: Hindi NeMo CTC, Santali NeMo transducer, int8, "
             + "${settings.asrThreads} threads; loaded now: ${recLang ?: "none"}")
         .put("tts", "sherpa-onnx Piper hi voice; Santali through Ol Chiki transliteration; loaded: ${tts != null}")
-        .put("nmt", if (settings.onDeviceNmt) "IndicTrans2 int8 (ONNX Runtime); loaded: ${nmt != null}" else "off")
+        .put("nmt", when {
+            !settings.onDeviceNmt -> "off"
+            !File(dir, "nmt/encoder.int8.onnx").isFile -> "not in the installed model pack"
+            else -> "IndicTrans2 int8 (ONNX Runtime); new typed sentences; loaded: ${nmt != null}"
+        })
 
     @Synchronized
     fun release() { rec?.release(); rec = null; recLang = null; tts?.release(); tts = null; nmt?.close(); nmt = null }

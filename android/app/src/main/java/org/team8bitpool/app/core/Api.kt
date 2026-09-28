@@ -98,12 +98,14 @@ class Api(
         val sp = speech()
         fun lang(tts: String) = JSONObject()
             .put("asr", JSONObject().put("engine", if (sp != null) "on device: " + sp.describe().optString("asr")
-                else if (engines.asr) "on device" else "not on device yet (M3)"))
-            .put("nmt", JSONObject().put("engine", if (engines.nmt) "on device"
-                else "not on device yet (M4); lesson lines come from the content pack" +
+                else if (engines.asr) "on device" else "not on device (no model pack installed)"))
+            .put("nmt", JSONObject().put("engine", sp?.describe()?.optString("nmt")
+                    ?.takeIf { it.startsWith("IndicTrans2") }?.let { "on device: $it; lesson lines from the content pack" }
+                ?: if (engines.nmt) "on device"
+                else "not on device (no model pack with translation); lesson lines come from the content pack" +
                     (if (sp != null) " (spoken lesson lines are matched to them)" else "")))
             .put("tts", JSONObject().put("engine", if (sp != null) "on device: " + sp.describe().optString("tts")
-                else if (engines.tts) "on device" else "not on device yet (M2); $tts audio comes from the content pack"))
+                else if (engines.tts) "on device" else "not on device (no model pack installed); $tts audio comes from the content pack"))
         return JSONObject()
             .put("languages", JSONObject().put("hi", lang("Hindi")).put("sat", lang("Santali")))
             .put("online_dependencies", JSONArray())
