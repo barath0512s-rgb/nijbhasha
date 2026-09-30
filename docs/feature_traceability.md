@@ -32,7 +32,7 @@ appears in the decks.
 | Mundari translation (our LoRA adapters, int8 ONNX, hub) | `mundari_nmt.py`, `notebooks/mundari_lora.ipynb`, `/preview/translate` | R1 | N8 | preview | F9, F12, S4 |
 | Mundari and Ho voices (MMS, Odia script) | `mms_tts.py`, `translit/odia.py`, `/preview/speak` | R1 | — | preview | F9, S3 |
 | Language registry (engine, licence, maturity per stage) | `languages.json`, `languages.py`, `/languages` | R1, R5 | — | done | A1 |
-| Nukta escape clean-up (output) | `textnorm.fix_nukta_escape` | R1 | — | done; input side open | A5 |
+| Nukta escape clean-up (output) | `textnorm.fix_nukta_escape` | R1 | — | done; input side fixed 30 Sep (`decompose_nukta`) | A5 |
 | FLN sample report over real hub output | `tools/fln_sample_report.py`, `docs/fln_translation_sample.md` | R1 | N3 | done | F5, A6 |
 | Public translation benchmarks (IN22-Gen, IN22-Conv, FLORES) | `eval/eval_benchmarks.py`, `eval/results/benchmarks.md` | R1 | — | done | F5, A2, S4 |
 | Leakage guard (no test sentence in training) | `eval/leakage.py`, `eval/test_set_hashes.json` | R1 | N8 | done | A3, S4 |

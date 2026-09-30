@@ -8,6 +8,7 @@ from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 from IndicTransToolkit.processor import IndicProcessor
 import database
 import nmt_guard
+import textnorm
 database.init_db()
 from education_glossary import lookup_hi_to_sat, lookup_sat_to_hi
 
@@ -302,7 +303,9 @@ class VaaniSetuPipeline:
             return cached
 
         src, tgt = ("hin_Deva", "sat_Olck") if fwd else ("sat_Olck", "hin_Deva")
-        out, score, needs_review = self._nmt_review(text, src, tgt)
+        # Typed ड़ (U+095C) etc. would reach the model as "ड\\u093C" (textnorm); give it the
+        # real nukta, as the tablet does. Only here: the benchmarks call _nmt directly.
+        out, score, needs_review = self._nmt_review(textnorm.decompose_nukta(text) if fwd else text, src, tgt)
         if fwd:
             out = self._apply_domain_glossary(out, "sat_Olck")
         result = {"text": out, "source": "model", "model_score": score}

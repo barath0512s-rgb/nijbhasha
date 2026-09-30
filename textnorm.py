@@ -67,6 +67,20 @@ def strip_reference_tags(text: str):
 _NUKTA_ESCAPE = re.compile(r"\\u093[cC]")
 
 
+# The precomposed nukta letters, written as base letter + nukta (U+093C) before a teacher's
+# Hindi reaches the model, so the normaliser above never sees them. The tablet's IndicProc.kt
+# does the same, so the hub and the tablet now read such input alike.
+_NUKTA_LETTERS = {"\u0929": "\u0928", "\u0931": "\u0930", "\u0934": "\u0933",
+                  "\u0958": "\u0915", "\u0959": "\u0916", "\u095a": "\u0917", "\u095b": "\u091c",
+                  "\u095c": "\u0921", "\u095d": "\u0922", "\u095e": "\u092b", "\u095f": "\u092f"}
+_NUKTA_LETTER_RE = re.compile("[" + "".join(_NUKTA_LETTERS) + "]")
+
+
+def decompose_nukta(text: str) -> str:
+    """ड़ (U+095C) -> ड + ़ (U+093C), and the same for the other precomposed nukta letters."""
+    return _NUKTA_LETTER_RE.sub(lambda m: _NUKTA_LETTERS[m.group()] + "\u093c", text or "")
+
+
 def fix_nukta_escape(text: str) -> str:
     """Model output with the literal escape \\u093C replaced by the nukta (U+093C), then NFC.
     Used for the Mundari preview's output and for both sides of its scoring."""

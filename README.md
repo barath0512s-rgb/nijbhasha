@@ -657,7 +657,7 @@ virtual environment. A fresh clone must download the models (§9).
 
 | Item | Impact |
 |---|---|
-| The APK has no 32-bit ARM (armeabi-v7a) build | A 32-bit-only low-cost tablet cannot install it; adding the ABI needs a rebuild (and the ONNX Runtime JNI patch for that ABI) on the team laptop |
+| The APK has no 32-bit ARM (armeabi-v7a) build | A 32-bit-only low-cost tablet cannot install it. Not in this submission (decision of 30 Sep): the ONNX Runtime JNI patch handles 64-bit ELF only, so a 32-bit build needs that patch extended and a 32-bit device to test on; a finale roadmap item |
 | No real 2 GB tablet measured | On-device results are from a 2 GB Android 9 emulator and a Realme Pad Mini (4 GB, Android 11). Translating on the tablet needs about 1.2 GB, above the 900 MB guideline, so it loads on demand |
 | Free-form speech → speech is not on the tablet | On 2 GB it works but takes p50 13.48 s (models swapped), so it stays on the laptop hub; the tablet handles spoken lesson lines and typed sentences |
 | Ho and Mundari are previews | No speech recognition for either; Mundari translation and both voices on the laptop hub only, labelled Preview, not reviewed by a native speaker; Ho has no translation |

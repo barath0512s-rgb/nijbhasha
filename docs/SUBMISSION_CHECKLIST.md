@@ -101,8 +101,7 @@ template, at most 6 slides). Keep the finale deck for the presentation round.
 On https://github.com/barath0512s-rgb/nijbhasha → **Releases** → *Draft a new release* → tag
 `v0.95-submission` (or `v0.96` if you did step 3) → attach:
 - `app-release.apk` (72.2 MB);
-- the content pack `content-pack-<time>.zip` from `dist\packs\` (37.8 MB).
-
+- the content pack `content-pack-<time>.zip` from `dist\packs\` (37.8 MB);
 - the model pack `model-pack-<time>.zip` (361 MB; GitHub allows up to 2 GB per file).
 
 Release notes: copy the "Android app" section of the README, and add this licence line: *"The APK
@@ -117,11 +116,11 @@ is MIT. The source is this repository at this tag."*
 - `docs/demo_video_script.md`, `docs/feature_traceability.md` and `deck/final_deck.pdf` open.
 - The video link plays without signing in.
 
-## Team decisions (optional; nothing is changed until you decide)
+## Team decisions (made 30 Sep 2026)
 
-| Decision | Why it is open | How |
-|---|---|---|
-| A 32-bit (armeabi-v7a) build | Many ₹8–10k tablets are 32-bit; the APK is arm64 + x86_64 only. The ONNX Runtime patch is per ABI and has not been tested on 32-bit | add `"armeabi-v7a"` to `ABIS` in `tools/android/patch_ort_jni.py` and to `abiFilters` in `android/app/build.gradle.kts`, rebuild, test on a 32-bit device before claiming it |
-| Nukta in typed Hindi input | Typed ड़ can reach the model in two forms; see the "Nukta escape" row of `STATUS.md` | a one-line normalisation; decide with the team, then add a test |
-| Delete the stale branch `fix/pipeline-import-tests-session-logging` | Merged long ago; deleting a branch cannot be undone from the cloud session | GitHub → Branches → 🗑 |
-| Native review | The Santali, the reading guide and the Mundari preview are marked "awaiting native review" | `docs/native_review.md`; only then may the deck or video say "reviewed" |
+| Decision | Chosen | Why | What you do |
+|---|---|---|---|
+| A 32-bit (armeabi-v7a) build | **Not in this submission; finale roadmap item.** The APK stays arm64-v8a + x86_64 (the builds that were tested) | `tools/android/patch_ort_jni.py` rewrites 64-bit ELF files only (it reads 64-bit offsets). Adding the ABI would produce a 32-bit library that looks patched but does not load, on devices we cannot test. The README already lists "no 32-bit build" under limitations | Nothing now. For the finale: extend the patch to ELF32, add the ABI to `ABIS` and `abiFilters`, run `device_check.py` on a 32-bit tablet, and only then claim it |
+| Nukta in typed Hindi input | **Fixed** (30 Sep) | Typed ड़ (U+095C) and the other precomposed nukta letters are now written as base letter + nukta before the model, exactly as the tablet does. Checked with the pinned IndicTransToolkit: before, `पेड़` reached the model as `पेड\u093C`; after, as `पेड़`. Applied only in `pipeline.translate` (teachers' text). The benchmark path (`pipeline._nmt`) is unchanged, so the published chrF++ numbers stay valid | Nothing; `tests/test_nukta_escape.py` covers it |
+| Stale branch `fix/pipeline-import-tests-session-logging` | **Keep its history, take it out of the branch list** | Its 6 commits (VaaniSetu, before the rename) are not in `main` by hash, so deleting would lose them. The cloud session cannot rename or delete branches | GitHub → the repository → **Branches** → the branch → ✏️ **Rename** → `archive/pre-rename-history`. (Do the same for `android-wp4` if you like: it points at `v0.95-submission`, which the tag keeps anyway, so deleting it is safe too) |
+| Native review | **Keep every "awaiting native review" label**; ask a Santali speaker before the finale | Claiming review without it would be false. It cannot be decided by us | Before the finale: 20–30 lesson lines through `docs/native_review.md`, then update the labels |

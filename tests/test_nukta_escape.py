@@ -42,3 +42,48 @@ def test_pinned_toolkit_still_writes_the_escape():
                                                           tgt_lang=None, is_target=True)[0]
     assert LITERAL in out
     assert fix_nukta_escape(out) == "प" + DA_DEC + "हा"
+
+
+# ---- Input side (decision of 30 Sep): a teacher's precomposed nukta letter reaches the model
+# as base letter + real nukta, as on the tablet (IndicProc.kt), never as the escape.
+
+from textnorm import decompose_nukta  # noqa: E402
+
+PRECOMPOSED = "ऩऱऴक़ख़ग़ज़ड़ढ़फ़य़"
+
+
+def test_decompose_nukta_writes_the_real_nukta():
+    assert decompose_nukta(DA_PRE) == DA_DEC
+    for ch in PRECOMPOSED:
+        out = decompose_nukta(ch)
+        assert len(out) == 2 and out[1] == NUKTA
+        assert out == unicodedata.normalize("NFD", ch)     # the same as Unicode's decomposition
+    assert decompose_nukta("बच्चे पढ़ रहे हैं। ᱵᱟᱨ") == "बच्चे पढ़ रहे हैं। ᱵᱟᱨ"
+    assert decompose_nukta("") == "" and decompose_nukta(None) == ""
+
+
+def test_translate_gives_the_model_the_real_nukta(monkeypatch):
+    for m in ("torch", "transformers", "IndicTransToolkit"):
+        pytest.importorskip(m)
+    import pipeline
+    pl = pipeline.VaaniSetuPipeline.__new__(pipeline.VaaniSetuPipeline)
+    seen = []
+    monkeypatch.setattr(pipeline.database, "get_correction", lambda text, d: None)
+    monkeypatch.setattr(pipeline, "lookup_hi_to_sat", lambda text: None)
+    monkeypatch.setattr(pl, "_nmt_review", lambda t, s, g: (seen.append(t), ("ᱵᱟᱨ", None, False))[1], raising=False)
+    monkeypatch.setattr(pl, "_apply_domain_glossary", lambda o, l: o, raising=False)
+    pipeline.TRANSLATION_CACHE.clear()
+    try:
+        pl.translate("पे" + DA_PRE + " पर चढ़ो।", "hi-to-sat")
+    finally:
+        pipeline.TRANSLATION_CACHE.clear()
+    assert seen == ["पे" + DA_DEC + " पर चढ़ो।"]
+
+
+def test_pinned_toolkit_gets_no_escape_after_decomposing():
+    pytest.importorskip("IndicTransToolkit")
+    from IndicTransToolkit.processor import IndicProcessor
+    s = "बच्चे पे" + DA_PRE + " पर चढ़े।"
+    ip = IndicProcessor(inference=True)
+    assert LITERAL in ip.preprocess_batch([s], src_lang="hin_Deva", tgt_lang="sat_Olck")[0]
+    assert LITERAL not in ip.preprocess_batch([decompose_nukta(s)], src_lang="hin_Deva", tgt_lang="sat_Olck")[0]
