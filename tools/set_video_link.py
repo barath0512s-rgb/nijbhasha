@@ -84,7 +84,7 @@ def run(url, root=ROOT):
         if p.exists() and _pptx(p, url):
             done.append(str(p.relative_to(root)))
     readme = root / "README.md"
-    pairs = [("Demo video: script and captions ready (`docs/demo_video_script.md`); link added here once recorded",
+    pairs = [("Demo video: recorded 30 Sep on the laptop hub and the Realme tablet (shots and captions: `docs/demo_video_script.md`); link added here once uploaded",
               f"Demo video: {url}")]
     if readme.exists() and "| Demo video |" not in readme.read_text(encoding="utf-8"):
         pairs.append(("| Interface languages |", f"| Demo video | {url} |\n| Interface languages |"))

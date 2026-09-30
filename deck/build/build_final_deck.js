@@ -301,7 +301,7 @@ function arrow(s, x1, y1, x2, y2, color) {
 {
   const s = base();
   title(s, "Roadmap: close the known gaps first, then grow with the community");
-  const cols = [["30 days", C.navy, ["Native review of the 18 lessons", "32-bit ARM build; a real 2 GB tablet", "Demo video; APK release"]],
+  const cols = [["30 days", C.navy, ["Native review of the 18 lessons", "32-bit ARM build; a real 2 GB tablet", "APK release on GitHub"]],
                 ["90 days", C.teal, ["Proposed PALASH pilot, 5 classrooms", "Children's speech benchmark", "Mundari on the tablet"]],
                 ["180 days", C.saffron, ["Ho content with native writers", "Voice from the community corpus", "Resumable pack download"]]];
   cols.forEach(([h, c, its], i) => {
@@ -314,7 +314,7 @@ function arrow(s, x1, y1, x2, y2, color) {
   s.addText("Sustained by: open models and MIT code; lessons as editable JSON; corrections and the voice corpus grow with use.",
     { x: 0.5, y: 5.4, w: 12.3, h: 0.7, fontFace: BF, fontSize: 15, color: C.ink, margin: 0, isTextBox: true });
   source(s, "docs/audit_2026-09-28.md §7 (checklist)");
-  s.addNotes("Our roadmap starts with the gaps we have told you about. In 30 days: native review of the lessons, a 32-bit build and a real 2 GB tablet, and the demo video. In 90 days, if a pilot is agreed: five classrooms, a children's speech benchmark, and Mundari on the tablet. In 180 days: Ho content written with native speakers, a better Santali voice from the community corpus, and resumable downloads. It sustains itself because the models and code are open, lessons are editable files, and every correction and recording improves it.\n\nLikely question: Who pays for maintenance? Answer: there are no licence fees; the ongoing work is content and review, which fits the existing PALASH teacher-training structure; that is a proposal, not an agreement.");
+  s.addNotes("Our roadmap starts with the gaps we have told you about. In 30 days: native review of the lessons, a 32-bit build and a real 2 GB tablet, and the APK as a GitHub release. In 90 days, if a pilot is agreed: five classrooms, a children's speech benchmark, and Mundari on the tablet. In 180 days: Ho content written with native speakers, a better Santali voice from the community corpus, and resumable downloads. It sustains itself because the models and code are open, lessons are editable files, and every correction and recording improves it.\n\nLikely question: Who pays for maintenance? Answer: there are no licence fees; the ongoing work is content and review, which fits the existing PALASH teacher-training structure; that is a proposal, not an agreement.");
 }
 
 // ── F14 Demo and close ─────────────────────────────────────────────────────
@@ -369,7 +369,7 @@ const tbl = (s, rows, colW, y, fs) => s.addTable(rows.map((r, i) => r.map(c => i
   s.addNotes("The full numbers, each from a results file. Adult public speech and synthetic lesson lines only; children's speech is not measured.");
 }
 { const s = appendix("A3 · How we keep the numbers honest");
-  bullets(s, ["332 automated tests pass without models; 38 more need the models; CI on every push",
+  bullets(s, ["336 automated tests pass without models; 40 more need the models; CI on every push",
               "A test fails if the README quotes a number with no evidence file",
               "Model choices by rules written before the results (voice, decoding, int8)",
               "Leakage guard: no benchmark sentence can reach training",

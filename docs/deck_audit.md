@@ -64,4 +64,6 @@ reading guide, lesson plans, the community corpus.
 | Every limitation disclosed | ✅ F8, F10, A5; submission S4 risks |
 | No invented statistics, testimonials or native-speaker validation | ✅ none; PALASH figures attributed to JEPC; pilot marked "proposed, not agreed" |
 | Branding and team name unchanged | ✅ Nijbhasha, Team 8-bitPool (VITV), ID 168531 |
-| Still open | ⬜ demo video link (both decks); export the upload PDFs from PowerPoint |
+| Video | ✅ recorded 30 Sep (laptop hub, Realme tablet) |
+| Final check (30 Sep) | ✅ both decks pass `validate.py`; finale roadmap and test counts updated; rendered, no overflow |
+| Still open | ⬜ video link in both decks (`tools/set_video_link.py`); export the upload PDFs from PowerPoint |
