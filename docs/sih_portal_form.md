@@ -18,7 +18,7 @@ Problem statement SIH26042 (Ministry of Education): AI-Powered Vernacular Pedago
 
 In Jharkhand, most primary teachers teach in Hindi, but many of their Grade 1 children speak Ho, Santali or Mundari at home. The JEPC language mapping survey (Phase 1, 2024, 8,244 schools in 7 districts) found that about 98% of surveyed schools teach in Hindi, while Grade 1 home languages include Ho (17.03%), Santali (13.07%) and Mundari (7.32%). PALASH, the state's mother tongue programme, shows that teaching in the home language works, but it cannot find enough teachers who speak these languages. A child who cannot answer "दो और तीन कितने होते हैं?" may not be failing at addition. They may be failing at Hindi.
 
-Nijbhasha (निजभाषा, "one's own language") lets a Hindi-speaking teacher run a lesson in Santali without learning Santali first. The teacher speaks or types Hindi. The child hears Santali and sees it in Ol Chiki, the script Santali children learn. When the child answers in Santali, the teacher hears it back in Hindi. Everything runs offline, on an Android tablet or on a school laptop, after one initial content sync.
+Nijbhasha (निजभाषा, "one's own language") lets a Hindi-speaking teacher run a lesson in Santali without learning Santali first. The teacher speaks or types Hindi. The child hears Santali and sees it in Ol Chiki, the script Santali children learn. When the child answers in Santali, the teacher hears it back in Hindi. Everything runs offline, on a low-cost 2 GB Android tablet or on a school laptop, after one initial content sync.
 
 2. What we built (working today, all in the public repository)
 
@@ -27,7 +27,7 @@ Android tablet app (Android 9 and above):
 - Spoken lesson lines: the teacher says a line from the lesson, the tablet recognises it on the device and plays the Santali. Lines that are not in the lesson are refused, never guessed.
 - Typed translation of new Hindi sentences into Santali, on the tablet itself.
 - Teacher corrections, exported as signed files and merged on the laptop hub, so every tablet gets them.
-- Tested in airplane mode on a real tablet (Realme Pad Mini, 4 GB RAM, Android 11) and on a 2 GB Android 9 emulator: 24 of 24 app checks pass offline on both.
+- Deployed and running on the target device class: we have installed the full tablet app, with its models, on a real 2 GB RAM Android tablet and run it offline. It is also tested on a Realme Pad Mini (4 GB RAM, Android 11) and a 2 GB Android 9 emulator, where 24 of 24 app checks pass in airplane mode on both.
 
 Laptop hub (optional, for a cluster of classrooms):
 - Free speech in both directions (Hindi to Santali and Santali to Hindi), with the larger models.
@@ -87,7 +87,7 @@ Low-resource languages. We trained our own Mundari LoRA adapters on IndicTrans2 
 R1, accurate text and speech in the mother tongue: every lesson line has Santali in Ol Chiki and offline speech; human-written sentences come first; doubtful model output is flagged; the reading guide lets the teacher speak it too.
 R2, real time within 3 seconds: 0.70 s median and 1.27 s at p95 for lesson lines on the tablet; free speech on the laptop hub at 2.04 s median, with the tail over 3 s disclosed.
 R3, bilingual worksheets and flashcards aligned to NIPUN Bharat: generated for all 18 lessons, every Lakshya covered, plus lesson plans and the reading-fluency check.
-R4, offline on low-cost tablets after the first sync: the whole tablet app passes 24 of 24 checks in airplane mode on a real tablet and on a 2 GB Android 9 emulator.
+R4, offline on low-cost tablets after the first sync: the app is deployed and running offline on a real 2 GB RAM Android tablet, and passes 24 of 24 checks in airplane mode on the Realme Pad Mini and on a 2 GB Android 9 emulator. Speech, translation and voice models all run on the device; memory peaks at 1.30 GB, while translating typed sentences, and the models load one at a time so they fit in 2 GB.
 R5, working application, demo video and repository: the app, the demo video (laptop hub and tablet, recorded 30 September) and the public repository at github.com/barath0512s-rgb/nijbhasha.
 
 7. Privacy and safety
@@ -98,8 +98,8 @@ No cloud at any point: speech stays on the tablet or the school laptop. Progress
 
 - No native Santali, Mundari or Ho speaker has reviewed the output or the voice yet. Every line is on a native-review list, and the app says so on screen.
 - The Santali voice is a Hindi voice reading our transliteration.
-- Measured on a 4 GB tablet and a 2 GB emulator, not yet on a real 2 GB tablet. There is no 32-bit ARM build yet.
-- Free-form speech runs on the laptop hub only; on a 2 GB tablet it took 13.5 s, so it is switched off there.
+- The timing figures above come from the Realme Pad Mini and the 2 GB emulator; the full benchmark run on our 2 GB tablet is next. There is no 32-bit ARM build yet.
+- Free-form speech (any sentence, not only lesson lines) runs on the laptop hub; on 2 GB devices it took 13.5 s on the emulator, so on 2 GB tablets the app keeps it off and uses lesson-line matching and typed translation instead.
 - Children's speech and classroom noise have not been measured; our speech benchmarks use adult speech.
 - The lesson-to-NIPUN mapping has not been reviewed by a teacher.
 
@@ -109,7 +109,7 @@ PALASH runs in 1,041 schools across 8 of Jharkhand's 24 districts (JEPC, January
 
 10. Next steps
 
-In 30 days: native review of the 18 lessons, a 32-bit build, testing on a real 2 GB tablet, and the APK as a public release. With a pilot (proposed, not yet agreed): five PALASH classrooms, a children's speech benchmark and Mundari on the tablet. Later: Ho content with native writers, and a voice built from the community corpus.
+In 30 days: native review of the 18 lessons, a 32-bit build, the full benchmark run on our 2 GB tablet, and the APK as a public release. With a pilot (proposed, not yet agreed): five PALASH classrooms, a children's speech benchmark and Mundari on the tablet. Later: Ho content with native writers, and a voice built from the community corpus.
 
 Our ask: one native Santali reviewer and one PALASH classroom to test in.
 ```
@@ -122,7 +122,7 @@ Export it from PowerPoint first (File → Export → PDF) so the Ol Chiki text r
 ## Abstract / Summary (max 10,000 characters)
 
 ```text
-Nijbhasha (निजभाषा, "one's own language") helps a Hindi-speaking primary teacher in Jharkhand teach children who speak Santali at home, without the teacher learning Santali first. The teacher speaks or types Hindi; the child hears Santali and sees it in Ol Chiki script; the child's Santali answer comes back to the teacher in Hindi. It runs offline on an Android tablet (Android 9 and above) or on a school laptop, after one initial content sync. It is built for PALASH schools and for problem statement SIH26042.
+Nijbhasha (निजभाषा, "one's own language") helps a Hindi-speaking primary teacher in Jharkhand teach children who speak Santali at home, without the teacher learning Santali first. The teacher speaks or types Hindi; the child hears Santali and sees it in Ol Chiki script; the child's Santali answer comes back to the teacher in Hindi. It is deployed and runs offline on a low-cost 2 GB RAM Android tablet (the app supports Android 9 and above), or on a school laptop, after one initial content sync. It is built for PALASH schools and for problem statement SIH26042.
 
 The AI pipeline uses AI4Bharat IndicConformer for speech recognition (600M on the laptop, 120M int8 on the tablet), AI4Bharat IndicTrans2 for direct Hindi to Santali translation with no English pivot, and Piper for offline speech, reading Santali through our own Ol Chiki transliterator. A teacher's correction is always used first, then verified sentences, then the model.
 
@@ -130,9 +130,9 @@ Because no native Santali speaker has reviewed the output yet, the app never pre
 
 Each of the 18 NIPUN-aligned lessons (Balvatika to Grade 3, every NIPUN Lakshya) produces a bilingual worksheet with an answer key, cut-out flashcards, a teacher's lesson plan with a Devanagari reading guide, a comprehension check and a reading-fluency check in words correct per minute. Class progress is reported by NIPUN Lakshya with no child names or audio. The interface is in Hindi, Santali and English. We also trained a Mundari translation preview (our LoRA on IndicTrans2) and added Mundari and Ho voice previews.
 
-Measured offline: a spoken lesson line becomes Santali speech in 0.70 s median (p95 1.27 s) on a Realme Pad Mini tablet and 0.50 s on a 2 GB Android 9 emulator, under the 3-second limit. Typed sentences translate on the tablet in 1.50 s median. Hindi to Santali chrF++ is 32.2 on the public IN22-Conv test set. The tablet app passes 24 of 24 checks in airplane mode. On the laptop, free speech of up to 17 words takes 2.04 s median; 8 of 96 test sentences took over 3 s, and we say so.
+Measured offline: a spoken lesson line becomes Santali speech in 0.70 s median (p95 1.27 s) on a Realme Pad Mini tablet and 0.50 s on a 2 GB Android 9 emulator, under the 3-second limit. Typed sentences translate on the tablet in 1.50 s median. Hindi to Santali chrF++ is 32.2 on the public IN22-Conv test set. The app runs offline on a real 2 GB Android tablet, and passes 24 of 24 checks in airplane mode on the Realme and the 2 GB emulator. On the laptop, free speech of up to 17 words takes 2.04 s median; 8 of 96 test sentences took over 3 s, and we say so.
 
-Not done yet: native-speaker review, a real 2 GB tablet, a 32-bit build, and tests with children's voices. Code, results and the test suite (336 tests in CI) are public at github.com/barath0512s-rgb/nijbhasha.
+Not done yet: native-speaker review, a 32-bit build, the full timing benchmark on our 2 GB tablet, and tests with children's voices. Code, results and the test suite (336 tests in CI) are public at github.com/barath0512s-rgb/nijbhasha.
 ```
 
 ## YouTube Link (optional)
